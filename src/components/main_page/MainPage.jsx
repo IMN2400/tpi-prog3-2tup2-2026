@@ -1,9 +1,11 @@
-
+import { Card } from 'react-bootstrap'
 
 
 
 const MainPage = () => {
-    return
+    return <>
+    
+    </>
 }
 
 
