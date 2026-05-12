@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { validateCreatePerson } from "../middlewares/person.validation.js";
+import { validateUpdatePerson } from "../middlewares/person.validation.js";
 import {
   getPersons,
   getPersonById,
@@ -11,8 +13,8 @@ const router = Router();
 
 router.get("/persons", getPersons);
 router.get("/persons/:id", getPersonById);
-router.post("/persons", createPerson);
-router.put("/persons/:id", updatePerson);
+router.put("/persons/:id",validateUpdatePerson, updatePerson);
 router.delete("/persons/:id", deletePerson);
+router.post("/persons", validateCreatePerson, createPerson);
 
 export default router;

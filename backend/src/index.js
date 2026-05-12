@@ -1,8 +1,9 @@
 import express from "express";
 import morgan from "morgan";
 import { sequelize } from "./config/database.js";
-import "./models/Person.js";
 import personRoutes from "./routes/person.routes.js";
+import forumRoutes from "./routes/forum.routes.js";
+import "./models/index.js";
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 app.use(personRoutes);
+app.use(forumRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend funcionando");
