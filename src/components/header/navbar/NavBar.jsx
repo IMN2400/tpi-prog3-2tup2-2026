@@ -1,19 +1,23 @@
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
+import { Navbar, Container, Nav, NavDropdown } from 'react-bootstrap'; 
 
 const NavBar = () => {
+    const navStyle = {
+        color:'#ffffff',
+        fontFamily:'"Unica One","formera", "Century Gothic", fantasy',
+    }
     return (
-        <Navbar bg="success" expand="xxl" class="fixed-top">
-            <Container>
-                <Navbar.Brand href="#login">GRAN FORO TUP</Navbar.Brand>
-                <Nav className="me-auto">
-                    <Nav.Link href="/main"> Página Principal </Nav.Link>
-                    <Nav.Link href="/forumlist"> Foros </Nav.Link>
-                    <Nav.Link href="/404NotFound"> Debug </Nav.Link>
-                    <Nav.Link href="/login"> Inicio de Sesión </Nav.Link>
+        <Navbar bg="success" expand="lg">
+            <Container style={navStyle}>
+                <Navbar.Brand href="#login" className="text-white">GRAN FORO TUP</Navbar.Brand>
+                <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                <Navbar.Collapse id="basic-navbar-nav" className="navbar-right">
+                <Nav> 
+                        <Nav.Link href="/main" className="text-white bg-info"> Página Principal </Nav.Link>
+                        <Nav.Link href="/forumlist"className="text-white"> Foros </Nav.Link>
+                        <Nav.Link href="/404NotFound"className="text-white bg-info"> Debug </Nav.Link>
+                        <Nav.Link href="/login"className="text-white"> Inicio de Sesión </Nav.Link>
                 </Nav>
+                </Navbar.Collapse>
             </Container>
         </Navbar> 
     )

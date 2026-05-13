@@ -10,14 +10,15 @@ const RoutesDoc = () => {
 
     return  (
     <> 
-    <Header />
     <BrowserRouter>
+    <Header />
     <Routes>
-        <Route path="main" element={<MainPage />}/>
+        <Route path={"main", "/", "home"} element={<MainPage />}/>
         <Route path="login" element={<LogIn />}/>
         <Route path="*" element={<NotFound />} />
-    </Routes></BrowserRouter>
+    </Routes>
     <Footer />
+    </BrowserRouter>
     </>)
     
 }

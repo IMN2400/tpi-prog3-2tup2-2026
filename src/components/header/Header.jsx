@@ -4,8 +4,8 @@ import NavBar from "./navbar/NavBar"
 
 const Header = () => {
     return <section>
-        <NavBar />
         <Banner />
+        <NavBar />
     </section>
 }
 

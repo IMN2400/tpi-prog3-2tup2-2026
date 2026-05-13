@@ -1,15 +1,22 @@
-
-
+import { useNavigate } from "react-router"
 
 const Banner = () => {
+    const navigate = useNavigate("")
     const BannerStyle = {
-        backgroundImage: '/public/banner.png',
-        height: '300px', 
-        marginTop:'64px',
+        backgroundImage: "url('/narrowBanner.png')",
+        backgroundRepeat:'no-repeat',
+        backgroundSize:'cover',
+        margin:'0, 0, 0, 0',
+        height:'10vw',
+        maxHeight:'100px',
+        padding:'0px',
+        backgroundPosition: '70% 50%',
+        backgroundClip: 'border-box',
     }
-    return <div class="p-5 text-center bg-image" style={BannerStyle} title="GRAN FORO DE LA TUP: Un sitio de foros para la Tecnicatura Universitaria en Programación de la Universidad Tecnológica Nacional">
-    </div>
+    return <div style={BannerStyle} title="GRAN FORO DE LA TUP: Un sitio de foros para la Tecnicatura Universitaria en Programación de la Universidad Tecnológica Nacional" onClick={() => {navigate("/main", 'replace')}}>
+        </div>
 }
+
 
 
 export default Banner
