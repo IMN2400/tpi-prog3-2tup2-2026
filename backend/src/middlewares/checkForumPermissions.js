@@ -2,7 +2,7 @@ import { Person } from "../models/index.js";
 
 export const onlyAdminOrSysadmin = async (req, res, next) => {
   try {
-    const personId = req.headers.personid;
+    const personId = req.user.id;
 
     if (!personId) {
       return res.status(401).json({

@@ -12,6 +12,7 @@ import {
 } from "../middlewares/forum.validation.js";
 
 import { onlyAdminOrSysadmin } from "../middlewares/checkForumPermissions.js";
+import { verifyToken } from "../middlewares/verifyToken.js";
 
 
 const router = Router();
@@ -21,6 +22,7 @@ router.get("/forums/:id", getForumById);
 
 router.post(
   "/forums",
+  verifyToken,
   onlyAdminOrSysadmin,
   validateCreateForum, 
   createForum,
@@ -29,6 +31,7 @@ router.post(
 
 router.put(
   "/forums/:id",
+  verifyToken,
   onlyAdminOrSysadmin,
   validateUpdateForum, 
   updateForum, 
@@ -36,7 +39,8 @@ router.put(
 
 router.delete(
   "/forums/:id",
-   onlyAdminOrSysadmin, 
-   deleteForum);
+  verifyToken,
+  onlyAdminOrSysadmin, 
+  deleteForum);
 
 export default router;
