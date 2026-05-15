@@ -6,7 +6,7 @@ const Footer = () => {
         marginTop: '150px',
         marginBottom: '50px',
         paddingTop: '150px',
-        fontSize: '.6rem',
+        fontSize: '.4rem',
         paddingLeft: '100px',
         paddingRight: '100px',
     }
