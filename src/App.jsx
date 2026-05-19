@@ -1,12 +1,12 @@
-import './App.css'
+//import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import './App.css'
 import NotFound from './components/notFound/NotFound';
 import Bans from './components/bans/bans';
 import NewBan from './components/bans/NewBans';
 
-import 'bootstrap/dist/css/bootstrap.min.css'
-
 function App() {
+//  const [count, setCount] = useState(0)
 
   return (
     <div>
