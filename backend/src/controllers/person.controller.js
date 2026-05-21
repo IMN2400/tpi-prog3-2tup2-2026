@@ -3,7 +3,6 @@ import { Person } from "../models/Person.js";
 export const getPersons = async (req, res) => {
   try {
     const persons = await Person.findAll({
-      where: { estado: true },
       attributes: { exclude: ["password"] },
     });
 
