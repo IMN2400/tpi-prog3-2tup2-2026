@@ -1,13 +1,16 @@
-import { useState } from 'react'
-import Routes from './components/routes/Routes'
+import { useState } from 'react';
+import RoutesDoc from './components/routes/RoutesDoc'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return <>
-  <Routes />
-  </>
+    const PageStyle = {
+        backgroundColor: "#aaeedf",
+    }
+  return (
+    <section style={PageStyle}>
+      <RoutesDoc />
+    </section>
+  )
 }
 
 export default App
