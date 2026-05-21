@@ -8,13 +8,28 @@ import {
   updatePerson,
   deletePerson,
 } from "../controllers/person.controller.js";
+import { verifyToken } from "../middlewares/verifyToken.js";
+import { canManagePersons } from "../middlewares/checkPersonPermissions.js";
 
 const router = Router();
 
 router.get("/persons", getPersons);
 router.get("/persons/:id", getPersonById);
-router.put("/persons/:id",validateUpdatePerson, updatePerson);
-router.delete("/persons/:id", deletePerson);
+
+router.put(
+  "/persons/:id",
+  verifyToken,
+  canManagePersons,
+  validateUpdatePerson,
+  updatePerson);
+
+router.delete(
+  "/persons/:id",
+  verifyToken,
+  canManagePersons,
+  deletePerson
+);
+
 router.post("/persons", validateCreatePerson, createPerson);
 
 export default router;

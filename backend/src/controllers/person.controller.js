@@ -9,7 +9,7 @@ export const getPersons = async (req, res) => {
     res.json(persons);
   } catch (error) {
     res.status(500).json({
-      message: "Error al obtener las personas",
+      message: "Error al obtener los usuarios",
       error: error.message,
     });
   }
@@ -20,6 +20,10 @@ export const getPersonById = async (req, res) => {
     const { id } = req.params;
 
     const person = await Person.findByPk(id, {
+      where: {
+        id,
+        estado: true,
+      },
       attributes: { exclude: ["password"] },
     });
 
@@ -32,7 +36,7 @@ export const getPersonById = async (req, res) => {
     res.json(person);
   } catch (error) {
     res.status(500).json({
-      message: "Error al obtener la persona",
+      message: "Error al obtener el usuario",
       error: error.message,
     });
   }
@@ -56,7 +60,7 @@ export const createPerson = async (req, res) => {
     res.status(201).json(personResponse);
   } catch (error) {
     res.status(500).json({
-      message: "Error al crear la persona",
+      message: "Error al crear el usuario",
       error: error.message,
     });
   }
@@ -71,7 +75,7 @@ export const updatePerson = async (req, res) => {
 
     if (!person) {
       return res.status(404).json({
-        message: "Persona no encontrada",
+        message: "Usuario no encontrado",
       });
     }
     
@@ -91,12 +95,12 @@ export const updatePerson = async (req, res) => {
 
 
     res.json({
-      message: "Persona actualizada correctamente",
+      message: "Usuario actualizado correctamente",
       person: personResponse,
     });
   } catch (error) {
     res.status(500).json({
-      message: "Error al actualizar la persona",
+      message: "Error al actualizar el usuario",
       error: error.message,
     });
   }
@@ -110,7 +114,7 @@ export const deletePerson = async (req, res) => {
 
     if (!person) {
       return res.status(404).json({
-        message: "Persona no encontrada",
+        message: "Usuario no encontrado",
       });
     }
 
@@ -119,11 +123,11 @@ export const deletePerson = async (req, res) => {
     });
 
     res.json({
-      message: "Persona dada de baja correctamente",
+      message: "Usuario dado de baja correctamente",
     });
   } catch (error) {
     res.status(500).json({
-      message: "Error al dar de baja la persona",
+      message: "Error al dar de baja el usuario",
       error: error.message,
     });
   }
