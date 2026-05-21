@@ -5,8 +5,8 @@ import { Button, Card, Col, Form, FormGroup, Row } from "react-bootstrap";
 
 const NewBan = () => {
     return (
-        <div>
-            <Card>
+        <div className="d-flex justify-content-center mt-5">
+            <Card className="p-4 shadow bg-dark text-light">
                 <Card.Body>
                     <Form>
                         <Row>
@@ -48,7 +48,7 @@ const NewBan = () => {
                                 <Button variant='primary' type='submit'>Banear</Button>
                             </Col>
                             <Col md={3}>
-                                <Button variant='secondary' type='submit'>Cancelar</Button>
+                                <Button variant='secondary' type='buttom'>Cancelar</Button>
                             </Col>
                         </Row>
 
