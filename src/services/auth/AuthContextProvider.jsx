@@ -20,7 +20,7 @@ export const AuthContextProvider = (children) => {
 
     const HandleLogin = (token) => {
         localStorage.setItem("GranForoAuthToken", token);
-        setToken(Token);
+        setToken(token);
         console.log("Login exitoso.");
     };
 
