@@ -1,4 +1,4 @@
-import Ban from '../models/Ban.js';
+import Ban from '../models/Bans.js';
 
 // Crear un ban
 export const createBan = async (req, res) => {
@@ -39,6 +39,28 @@ export const getBans = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: 'Error al obtener bans',
+            error: error.message
+        });
+    }
+};
+
+
+export const getBanByUser = async (req, res) => {
+    try {
+
+        const { id } = req.params;
+
+        const bans = await Ban.findAll({
+            where: {
+                userId: id
+            }
+        });
+
+        res.json(bans);
+
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error al obtener los bans del usuario',
             error: error.message
         });
     }

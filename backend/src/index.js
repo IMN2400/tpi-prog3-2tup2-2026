@@ -5,6 +5,7 @@ import personRoutes from "./routes/person.routes.js";
 import forumRoutes from "./routes/forum.routes.js";
 import "./models/index.js";
 import authRoutes from "./routes/auth.routes.js";
+import banRoutes from "./routes/ban.routes.js"
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(morgan("dev"));
 app.use(personRoutes);
 app.use(forumRoutes);
 app.use(authRoutes);
+app.use(banRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend funcionando");

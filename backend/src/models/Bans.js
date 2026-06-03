@@ -1,11 +1,11 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import { sequelize } from '../config/database.js';
 
 const Ban = sequelize.define('Ban', {
 
     userId: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: false,
     },
     adminId: {
         type: DataTypes.INTEGER,
