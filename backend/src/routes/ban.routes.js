@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { createBan, getBans } from '../controllers/banController.js';
+import { createBan, getBans, getBanByUser } from '../controllers/ban.controllers.js';
 
 const router = Router();
 
 router.post('/bans', createBan);
 router.get('/bans', getBans);
-router.get('/user/:id', getBanByUser);
+router.get('/bans/user/:id', getBanByUser);
 
 export default router;
