@@ -13,7 +13,9 @@ const messages = [
   "No hay nada acá...",
   "404: el vacío te mira de vuelta",
   "Este no es el foro que buscabas",
-  "Ups... rompiste el internet (no realmente)"
+  "Ups... rompiste el internet (no realmente)",
+  "¡Mirá dónde te viniste a meter!",
+  "Te soy sincero... no tengo idea de como hiciste para terminar acá."
 ];
 
 const randomMessage = messages[Math.floor(Math.random() * messages.length)];
