@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/database.js';
 
-const Ban = sequelize.define('Ban', {
+const BanModel = sequelize.define('Ban', {
 
     userId: {
         type: DataTypes.INTEGER,
@@ -25,4 +25,4 @@ const Ban = sequelize.define('Ban', {
     }
 });
 
-export default Ban;
+export default BanModel;

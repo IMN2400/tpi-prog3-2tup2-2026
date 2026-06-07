@@ -7,6 +7,8 @@ import Footer from "../footer/Footer"
 import Protected from "../protected/Protected"
 import { ToastContainer } from 'react-toastify';
 import Register from "../register/Register";
+import Bans from "../bans/Bans"
+import NewBans from "../bans/NewBans"
 
 
 const RoutesDoc = () => {
@@ -23,6 +25,8 @@ const RoutesDoc = () => {
                 <Route path="/home" element={<MainPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
+            <Route path="/bans" element={<Bans />} />
+            <Route path="/newban" element={<NewBans />} />
         </Routes>
         <Footer />
         <ToastContainer />
