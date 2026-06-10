@@ -26,7 +26,7 @@ const RoutesDoc = () => {
             </Route>
             <Route path="*" element={<NotFound />} />
             <Route path="/bans" element={<Bans />} />
-            <Route path="/newban" element={<NewBans />} />
+            <Route path="/newban/" element={<NewBans />} />
         </Routes>
         <Footer />
         <ToastContainer />
