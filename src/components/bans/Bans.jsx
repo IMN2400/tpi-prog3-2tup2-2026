@@ -81,7 +81,8 @@ const Bans = () => {
                             'application/json'
                     },
                     body: JSON.stringify({
-                        duration: newDuration
+                        duration: newDuration,
+                        estado: 'desbanneado'
                     })
                 }
             );
@@ -139,6 +140,7 @@ const Bans = () => {
                                     item.duration
                                 )})
                             </td>
+                            <td>{item.estado} </td>
                             <td>
                                 <button
                                     variant="warning"
