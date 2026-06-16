@@ -35,6 +35,7 @@ const LogIn = () => {
       });
 
       const data = await response.json();
+      console.log("Respuesta del login:", data);
 
       if (!response.ok) {
         throw new Error(data.message || "Error al iniciar sesión");
@@ -44,6 +45,7 @@ const LogIn = () => {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       navigate("/main");
+
     } catch (error) {
       setError(error.message);
     } finally {
@@ -51,67 +53,83 @@ const LogIn = () => {
     }
   };
 
-  return (
-    <Container className="py-5">
-      <Row className="justify-content-center">
-        <Col xs={12} md={8} lg={5}>
-          <Card className="shadow border-0">
-            <Card.Body className="p-4">
-              <div className="text-center mb-4">
-                <h2>Iniciar sesión</h2>
-                <p className="text-muted">
-                  Entrá y participá en el Gran Foro TUP
-                </p>
-              </div>
+return (
+    <main className="login-page login-page-light">
+      <Container>
+        <Row className="justify-content-center">
+          <Col xs={12} sm={10} md={7} lg={5} xl={4}>
+            <Card className="login-card">
+              <Card.Body className="login-card-body">
+                <div className="login-header">
+                  <div className="login-badge">Foro TUP</div>
 
-              {error && <Alert variant="danger">{error}</Alert>}
+                  <h2 className="login-title">Iniciar sesión</h2>
 
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Correo electrónico</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="correo"
-                    placeholder="ejemplo@mail.com"
-                    value={form.correo}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                  <p className="login-subtitle">
+                    Entrá y participá en el Gran Foro TUP
+                  </p>
+                </div>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    placeholder="Ingresá tu contraseña"
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                {error && (
+                  <Alert variant="danger" className="login-alert">
+                    {error}
+                  </Alert>
+                )}
 
-                <Button
-                  type="submit"
-                  variant="success"
-                  className="w-100"
-                  disabled={loading}
-                >
-                  {loading ? "Ingresando..." : "Iniciar sesión"}
-                </Button>
-              </Form>
+                <Form onSubmit={handleSubmit}>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="login-label">
+                      Correo electrónico
+                    </Form.Label>
 
-              <div className="text-center mt-3">
-                <small className="text-muted">
-                  ¿No tenés cuenta?{" "}
+                    <Form.Control
+                      className="login-input"
+                      type="email"
+                      name="correo"
+                      placeholder="ejemplo@mail.com"
+                      value={form.correo}
+                      onChange={handleChange}
+                      autoComplete="email"
+                      required
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-4">
+                    <Form.Label className="login-label">
+                      Contraseña
+                    </Form.Label>
+
+                    <Form.Control
+                      className="login-input"
+                      type="password"
+                      name="password"
+                      placeholder="Ingresá tu contraseña"
+                      value={form.password}
+                      onChange={handleChange}
+                      autoComplete="current-password"
+                      required
+                    />
+                  </Form.Group>
+
+                  <Button
+                    type="submit"
+                    className="login-button"
+                    disabled={loading}
+                  >
+                    {loading ? "Ingresando..." : "Iniciar sesión"}
+                  </Button>
+                </Form>
+
+                <div className="login-footer">
+                  <span>¿No tenés cuenta?</span>{" "}
                   <Link to="/register">Registrate</Link>
-                </small>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </main>
   );
 };
 

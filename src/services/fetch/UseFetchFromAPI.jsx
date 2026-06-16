@@ -8,7 +8,7 @@ export const useFetchFromAPI = (apiRoute, initialValue = []) => {
   useEffect(() => {
     const callApi = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/${apiRoute}`);
+        const response = await fetch(`http://localhost:3000${apiRoute}`);
 
         if (!response.ok) {
           throw new Error("No se pudo recuperar la información");
