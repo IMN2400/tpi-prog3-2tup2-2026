@@ -3,7 +3,7 @@ import { Card } from "react-bootstrap"
 import ForumDisplay from "../forumDisplay/ForumDisplay"
 
 const Forums = ({forumsProp}) => {
-    const [forums, setBooks] = useState(forumsProp)
+    const [forums, setForums] = useState(forumsProp)
     
     return <section className="display-flex">
     {forums.map((forum)=> {ForumDisplay(forum)} )}
