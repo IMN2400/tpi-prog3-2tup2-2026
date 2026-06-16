@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
 import React from 'react'
-import { Button, Card, Col, Form, FormGroup, Row, Modal } from "react-bootstrap";
+import { Button, Card, Col, Form, FormGroup, Row, Modal, Table } from "react-bootstrap";
 
 
 const Users = () => {
-    const [users, setUser] = useState([]);
-
+    const [users, setUser] = useState([{
+        id: 1,
+        nombre: "Leandro",
+        correo: "test@test.com",
+        estado: "activo"
+    }]);
+/*
     useEffect(() => {
         fetch("http://localhost:3000/persons")
             .then(res => res.json())
             .then(data => setUser(data))
-            .then(error => console.error(error))
+            .catch(error =>
+                console.error(error)
+            )
     }, [])
+*/
 
     return (
         <div>
@@ -22,6 +30,7 @@ const Users = () => {
                         <th>Nombre</th>
                         <th>Correo</th>
                         <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -32,11 +41,11 @@ const Users = () => {
                             <td>{item.correo}</td>
                             <td>{item.estado}</td>
                             <td>
-                                <button
+                                <Button
                                     variant="warning"
-                                    onClick={}>
+                                    onClick={() => console.log("click")}>
                                     Banear
-                                </button>
+                                </Button>
                             </td>
                         </tr>
 
@@ -47,4 +56,4 @@ const Users = () => {
     )
 }
 
-export default users;
+export default Users;
