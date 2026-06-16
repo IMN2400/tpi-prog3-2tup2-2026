@@ -1,14 +1,13 @@
-import { Card } from 'react-bootstrap'
-import Forums from '../forums/Forums'
-
-
+import Forums from "../forums/Forums";
+import { useFetchFromAPI } from "../../services/fetch/UseFetchFromAPI";
 
 const MainPage = () => {
-    const fetchedForums = useFetchFromAPI("forums")
-    return <>
-            <Forums forumsProp={fetchedForums} />
-        </>
-}
+  const { data: forums, loading, error } = useFetchFromAPI("forums", []);
 
+  if (loading) return <p>Cargando foros...</p>;
+  if (error) return <p>Error: {error}</p>;
 
-export default MainPage
+  return <Forums forumsProp={forums} />;
+};
+
+export default MainPage;
