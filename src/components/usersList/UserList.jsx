@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import React from 'react'
+import NewBan from "../bans/NewBans";
 import { Button, Card, Col, Form, FormGroup, Row, Modal, Table } from "react-bootstrap";
 
 
 const Users = () => {
+
+    const [showModal, setModal] = useState(false)
     const [users, setUser] = useState([{
         id: 1,
         nombre: "Leandro",
@@ -20,6 +23,10 @@ const Users = () => {
             )
     }, [])
 */
+
+    const handleBanClick = () => {
+        setModal(true)
+    } 
 
     return (
         <div>
@@ -43,7 +50,7 @@ const Users = () => {
                             <td>
                                 <Button
                                     variant="warning"
-                                    onClick={() => console.log("click")}>
+                                    onClick={handleBanClick}>
                                     Banear
                                 </Button>
                             </td>
@@ -53,6 +60,7 @@ const Users = () => {
                 </tbody>
             </Table>
         </div>
+        
     )
 }
 
