@@ -9,6 +9,7 @@ import { ToastContainer } from 'react-toastify';
 import Register from "../register/Register";
 import Bans from "../bans/Bans"
 import NewBans from "../bans/NewBans"
+import Users from "../usersList/UserList"
 
 
 const RoutesDoc = () => {
@@ -26,7 +27,8 @@ const RoutesDoc = () => {
             </Route>
             <Route path="*" element={<NotFound />} />
             <Route path="/bans" element={<Bans />} />
-            <Route path="/newban/" element={<NewBans />} />
+            <Route path="/newban" element={<NewBans />} />
+            <Route path="/users" element={<Users />} />
         </Routes>
         <Footer />
         <ToastContainer />
