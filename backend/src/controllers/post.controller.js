@@ -1,17 +1,13 @@
 import models from "../models/index.js"
 
-//obtiene todos los posts
-
 export const getPosts = async (req, res) => {
     try {
         const posts = await models.Post.findAll({
-            //WHERE ES UN WHERE cf
             where: {
                 status: true
             },
-            //INCLUDE ES UN JOIN
             include: [
-                models.User,
+                models.Person,
                 models.Comment
             ]
         })
@@ -25,13 +21,11 @@ export const getPosts = async (req, res) => {
     }
 }
 
-//obtener los post por ID
-
 export const getPostById = async (req, res) => {
     try {
         const post = await models.Post.findByPk(req.params.id, {
             include: [
-                models.User,
+                models.Person,
                 models.Comment
             ]
         })
@@ -47,20 +41,37 @@ export const getPostById = async (req, res) => {
         res.status(500).json({error: error.message})
     }
 }
-
+export const getPostByForum = async (req, res) => {
+    try {
+        const post = await models.Post.findAll({
+            where: {
+                forumId: req.params.forumId
+            },
+            include: [
+                models.Person,
+                models.Comment
+            ]
+        })
+        res.json(post)
+    }
+    catch (error) {
+        message: "Error al buscar post"
+        res.status(500).json({error: error.message})
+    }
+}
 export const createPost = async (req, res) => {
     try {
 
         const {
             title,
             body,
-            userId,
+            personId,
             status
-        } = req.body //ESTE BODY NO TIENE NADA QUE VER CON EL CUERPO DEL POST
+        } = req.body 
         const post = await models.Post.create({
             title, 
             body,
-            userId,
+            personId,
             status
         })
 
@@ -68,7 +79,7 @@ export const createPost = async (req, res) => {
     } 
 
     catch (error) {
-        message: "Error al buscar post"
+        message: "Error al crear post"
         res.status(500).json({error: error.message})
     }
 }
@@ -93,7 +104,7 @@ export const updatePost = async (req, res) => {
         res.json(post)
     }
     catch (error) {
-        message: "Error al buscar post"
+        message: "Error al actualizar post"
         res.status(500).json({error: error.message})
     }
 }
@@ -114,7 +125,7 @@ export const deletearPost = async (req, res) => {
     }
 
     catch (error) {
-        message: "Error al buscar post"
+        message: "Error al eliminar post"
         res.status(500).json({error: error.message})
     }
 }
@@ -134,7 +145,7 @@ export const likesPost = async (req, res) => {
         res.json(post)
     }
     catch (error) {
-        message: "Error al buscar post"
+        message: "Error al likear post"
         res.status(500).json({error: error.message})
     }
 }
