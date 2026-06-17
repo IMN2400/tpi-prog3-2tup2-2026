@@ -13,6 +13,7 @@ import Users from "../usersList/UserList"
 
 
 const RoutesDoc = () => {
+    const idForo = new Number()
     return  (
     <> 
         <BrowserRouter>
@@ -24,7 +25,8 @@ const RoutesDoc = () => {
                 <Route path="/" element={<MainPage />} />
                 <Route path="/main" element={<MainPage />} />
                 <Route path="/home" element={<MainPage />} />
-                <Route path="forum" element={<MainPage />} />
+                <Route path={`/forum/:forumId`} element={<ForumPage />} />
+                <Route path={`/post/:postId`} element={<PostPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
             <Route path="/bans" element={<Bans />} />
