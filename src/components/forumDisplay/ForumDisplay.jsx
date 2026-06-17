@@ -4,14 +4,7 @@ import { useNavigate } from "react-router-dom";
 const ForumDisplay = ({ forum }) => {
   const navigate = useNavigate();
 
-  const {
-    id,
-    nombre,
-    descripcion,
-    reglas,
-    fundadorId,
-    Person,
-  } = forum;
+  const { id, nombre, descripcion, reglas, fundadorId, Person } = forum;
 
   const goToForum = () => {
     navigate(`/forum/${id}`);
@@ -20,10 +13,11 @@ const ForumDisplay = ({ forum }) => {
   const fundador = Person?.nombre || `Usuario ${fundadorId}`;
 
   return (
-    <Card style={{ width: "18rem" }}>
+    <Card className="forum-display-card">
       <Card.Body>
-        <Card.Title>{nombre}</Card.Title>
-        <Card.Subtitle className="mb-2 text-muted">
+        <Card.Title className="forum-display-title">{nombre}</Card.Title>
+
+        <Card.Subtitle className="mb-3 text-muted">
           {descripcion}
         </Card.Subtitle>
 
@@ -43,7 +37,7 @@ const ForumDisplay = ({ forum }) => {
           </Accordion.Item>
         </Accordion>
 
-        <Button className="mt-3" onClick={goToForum}>
+        <Button variant="success" className="mt-3" onClick={goToForum}>
           Ir al foro
         </Button>
       </Card.Body>
