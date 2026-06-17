@@ -1,11 +1,13 @@
-import Forums from '../forums/Forums'
-import { useFetchFromAPI } from '../../services/fetch/UseFetchFromAPI'
+import Forums from "../forums/Forums";
+import { useFetchFromAPI } from "../../services/fetch/UseFetchFromAPI";
 
 const MainPage = () => {
-    const fetchedForums = useFetchFromAPI("forums")
-    return <>
-            <Forums forumsProp={fetchedForums} />
-        </>
-}
+  const { data: forums, loading, error } = useFetchFromAPI("/forums", []);
 
-export default MainPage
+  if (loading) return <p>Cargando foros...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return <Forums forumsProp={forums} />;
+};
+
+export default MainPage;

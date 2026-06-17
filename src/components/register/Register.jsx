@@ -16,6 +16,7 @@ const Register = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({
@@ -29,9 +30,11 @@ const Register = () => {
 
     setError("");
     setSuccess("");
+    setLoading(true);
 
     if (form.password !== form.confirmPassword) {
       setError("Las contraseñas no coinciden");
+      setLoading(false);
       return;
     }
 
@@ -64,128 +67,144 @@ const Register = () => {
 
     } catch (error) {
       setError(error.message);
-    }
+    } finally {
+    setLoading(false);
+  }
   };
 
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center">
-        <Col lg={6}>
-          <Card className="shadow">
-            <Card.Body>
-              <h2 className="text-center mb-4">
-                Crear Cuenta
-              </h2>
+    <main className="login-page login-page-light">
+      <Container>
+        <Row className="justify-content-center">
+          <Col xs={12} sm={10} md={8} lg={6} xl={5}>
+            <Card className="login-card">
+              <Card.Body className="login-card-body">
+                <div className="login-header">
+                  <div className="login-badge">Foro TUP</div>
 
-              <p className="text-center text-muted">
-                Únete al Gran Foro TUP
-              </p>
+                  <h2 className="login-title">Crear cuenta</h2>
 
-              {error && (
-                <Alert variant="danger">
-                  {error}
-                </Alert>
-              )}
+                  <p className="login-subtitle">
+                    Unite al Gran Foro TUP y empezá a participar
+                  </p>
+                </div>
 
-              {success && (
-                <Alert variant="success">
-                  {success}
-                </Alert>
-              )}
+                {error && (
+                  <Alert variant="danger" className="login-alert">
+                    {error}
+                  </Alert>
+                )}
 
-              <Form onSubmit={handleSubmit}>
+                {success && (
+                  <Alert variant="success" className="login-alert">
+                    {success}
+                  </Alert>
+                )}
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Nick</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="nick"
-                    value={form.nick}
-                    onChange={handleChange}
-                    placeholder="Ej: Juan123"
-                    required
-                  />
-                </Form.Group>
+                <Form onSubmit={handleSubmit}>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="login-label">Nick</Form.Label>
+                    <Form.Control
+                      className="login-input"
+                      type="text"
+                      name="nick"
+                      value={form.nick}
+                      onChange={handleChange}
+                      placeholder="Ej: Juan123"
+                      autoComplete="username"
+                      required
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Nombre</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="nombre"
-                    value={form.nombre}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="login-label">Nombre</Form.Label>
+                    <Form.Control
+                      className="login-input"
+                      type="text"
+                      name="nombre"
+                      value={form.nombre}
+                      onChange={handleChange}
+                      placeholder="Ingresá tu nombre"
+                      autoComplete="name"
+                      required
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Correo</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="correo"
-                    value={form.correo}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="login-label">Correo electrónico</Form.Label>
+                    <Form.Control
+                      className="login-input"
+                      type="email"
+                      name="correo"
+                      value={form.correo}
+                      onChange={handleChange}
+                      placeholder="ejemplo@mail.com"
+                      autoComplete="email"
+                      required
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Edad</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="edad"
-                    min="13"
-                    value={form.edad}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="login-label">Edad</Form.Label>
+                    <Form.Control
+                      className="login-input"
+                      type="number"
+                      name="edad"
+                      min="13"
+                      value={form.edad}
+                      onChange={handleChange}
+                      placeholder="13+"
+                      required
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="login-label">Contraseña</Form.Label>
+                    <Form.Control
+                      className="login-input"
+                      type="password"
+                      name="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      placeholder="Creá una contraseña"
+                      autoComplete="new-password"
+                      required
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-4">
-                  <Form.Label>Confirmar contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="confirmPassword"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                  <Form.Group className="mb-4">
+                    <Form.Label className="login-label">Confirmar contraseña</Form.Label>
+                    <Form.Control
+                      className="login-input"
+                      type="password"
+                      name="confirmPassword"
+                      value={form.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Repetí tu contraseña"
+                      autoComplete="new-password"
+                      required
+                    />
+                  </Form.Group>
 
-                <Button
-                  type="submit"
-                  variant="success"
-                  className="w-100"
-                >
-                  Registrarse
-                </Button>
-              </Form>
+                  <Button
+                    type="submit"
+                    className="login-button"
+                    disabled={loading}
+                  >
+                    {loading ? "Registrando..." : "Crear cuenta"}
+                  </Button>
+                </Form>
 
-              <div className="text-center mt-3">
-                <small>
-                  ¿Ya tienes cuenta?{" "}
-                  <Link to="/login">
-                    Iniciar sesión
-                  </Link>
-                </small>
-              </div>
-
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+                <div className="login-footer">
+                  <span>¿Ya tenés cuenta?</span>{" "}
+                  <Link to="/login">Iniciar sesión</Link>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </main>
   );
 };
 

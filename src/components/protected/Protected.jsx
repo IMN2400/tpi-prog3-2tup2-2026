@@ -4,13 +4,13 @@ import { AuthenticationContext } from "../../services/auth/auth.context";
 //import { isTokenValid } from "../../services/auth/auth.helpers";
 
 const Protected = () => {
-    //const { token } = useContext(AuthenticationContext);
+  const token = localStorage.getItem("token");
 
-    //if (!token(token)) {
-        //return <Navigate to="/login" replace />;
-   // }
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
-    return <Outlet />;
+  return <Outlet />;
 };
 
 export default Protected;
