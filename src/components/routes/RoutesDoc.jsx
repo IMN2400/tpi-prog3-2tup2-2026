@@ -13,7 +13,6 @@ import Users from "../usersList/UserList"
 
 
 const RoutesDoc = () => {
-    const idForo = new Number()
     return  (
     <> 
         <BrowserRouter>
