@@ -24,6 +24,8 @@ const RoutesDoc = () => {
           <Route path="/home" element={<MainPage />} />
           <Route path="/login" element={<LogIn />} />
           <Route path="/register" element={<Register />} />
+          <Route path={"/forum/:forumId"} element={<ForumPage />} />
+          <Route path={"/post/:postId"} element={<PostPage />} />
 
           {/* Rutas protegidas */}
           <Route element={<Protected />}>
