@@ -10,6 +10,8 @@ import Register from "../register/Register";
 import Bans from "../bans/Bans";
 import NewBans from "../bans/NewBans";
 import Users from "../usersList/UserList";
+import ForumPage from "../forumPage/ForumPage";
+import PostPage from "../postPage/PostPage";
 
 const RoutesDoc = () => {
   return (

@@ -14,7 +14,7 @@ const ForumDisplay = ({ forum }) => {
   } = forum;
 
   const goToForum = () => {
-    navigate(`/foros/${id}`);
+    navigate(`/forum/${id}`);
   };
 
   const fundador = Person?.nombre || `Usuario ${fundadorId}`;
