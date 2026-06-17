@@ -10,8 +10,9 @@ import Register from "../register/Register";
 import Bans from "../bans/Bans";
 import NewBans from "../bans/NewBans";
 import Users from "../usersList/UserList";
-import ForumPage from "../forumPage/ForumPage"
-import PostPage from "../postPage/PostPage"
+import ForumPage from "../forumPage/ForumPage";
+import PostPage from "../postPage/PostPage";
+import ForumListPage from "../forumListPage/ForumListPage";
 
 const RoutesDoc = () => {
   return (
@@ -21,6 +22,7 @@ const RoutesDoc = () => {
 
         <Routes>
           {/* Rutas públicas */}
+          <Route path="/foros" element={<ForumListPage />} />
           <Route path="/" element={<MainPage />} />
           <Route path="/main" element={<MainPage />} />
           <Route path="/home" element={<MainPage />} />

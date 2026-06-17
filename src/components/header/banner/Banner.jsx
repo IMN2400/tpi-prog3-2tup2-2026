@@ -1,7 +1,7 @@
-import { useNavigate } from "react-router"
+import { useNavigate } from "react-router-dom"
 
 const Banner = () => {
-    const navigate = useNavigate("")
+    const navigate = useNavigate()
     const BannerStyle = {
         backgroundImage: "url('/narrowBanner.png')",
         backgroundRepeat:'no-repeat',
@@ -13,8 +13,11 @@ const Banner = () => {
         backgroundPosition: '70% 50%',
         backgroundClip: 'border-box',
     }
-    return <div style={BannerStyle} title="GRAN FORO DE LA TUP: Un sitio de foros para la Tecnicatura Universitaria en Programación de la Universidad Tecnológica Nacional" onClick={() => {navigate("/main", 'replace')}}>
-        </div>
+    return <div
+      style={BannerStyle}
+      title="GRAN FORO DE LA TUP: Un sitio de foros para la Tecnicatura Universitaria en Programación de la Universidad Tecnológica Nacional"
+      onClick={() => navigate("/main", { replace: true })}
+    />
 }
 
 
