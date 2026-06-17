@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize"
 import { sequelize } from "../config/database.js"
 
-export const CommentModel = sequelize.define (
+export const Comment = sequelize.define (
     "Comment",
     {
         id: {
@@ -9,6 +9,7 @@ export const CommentModel = sequelize.define (
             primaryKey: true,
             autoIncrement: true,
         },
+
         text: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -16,18 +17,25 @@ export const CommentModel = sequelize.define (
         userId: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            references: {
-                model: "User",
-                key: "id",
-            },
         },
+         postId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+  },
         likeCount: {
             type: DataTypes.INTEGER,
-            allowNull: false, 
+            allowNull: false,
+            defaultValue: 0,
         },
         postDate: {
             type: DataTypes.DATE,
             allowNull: false,
+            defaultValue: DataTypes.NOW,
         },
-    }
-)
+        status: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
+         },
+    });
+

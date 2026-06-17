@@ -6,6 +6,8 @@ import forumRoutes from "./routes/forum.routes.js";
 import "./models/index.js";
 import authRoutes from "./routes/auth.routes.js";
 import banRoutes from "./routes/ban.routes.js"
+import commentRoutes from "./routes/comment.routes.js";
+import postRoutes from "./routes/post.routes.js";
 
 const app = express();
 
@@ -31,6 +33,8 @@ app.use(personRoutes);
 app.use(forumRoutes);
 app.use(authRoutes);
 app.use(banRoutes);
+app.use(commentRoutes);
+app.use(postRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend funcionando");
