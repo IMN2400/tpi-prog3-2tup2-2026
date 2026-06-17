@@ -24,6 +24,7 @@ const RoutesDoc = () => {
                 <Route path="/" element={<MainPage />} />
                 <Route path="/main" element={<MainPage />} />
                 <Route path="/home" element={<MainPage />} />
+                <Route path="forum" element={<MainPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
             <Route path="/bans" element={<Bans />} />
