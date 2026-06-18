@@ -1,6 +1,6 @@
-import { useContext } from "react";
+// import { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { AuthenticationContext } from "../../services/auth/auth.context";
+// import { AuthenticationContext } from "../../services/auth/auth.context";
 //import { isTokenValid } from "../../services/auth/auth.helpers";
 
 const Protected = () => {
