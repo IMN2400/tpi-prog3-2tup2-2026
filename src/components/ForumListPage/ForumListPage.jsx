@@ -1,15 +1,29 @@
-import { Container, Alert, Spinner } from "react-bootstrap";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Container, Alert, Spinner, Form } from "react-bootstrap";
 import Forums from "../forums/Forums";
 import { useFetchFromAPI } from "../../services/fetch/UseFetchFromAPI";
+import "./ForumListPage.css";
 
 const ForumListPage = () => {
+  const navigate = useNavigate();
+
   const { data: forums, loading, error } = useFetchFromAPI("/forums", []);
+  const [search, setSearch] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const isAdmin = user?.rol === "ADMIN" || user?.rol === "SYSADMIN";
+
+  const filteredForums = (forums || []).filter((forum) => {
+    const text = `${forum.nombre || ""} ${forum.descripcion || ""}`.toLowerCase();
+    return text.includes(search.toLowerCase());
+  });
 
   if (loading) {
     return (
-      <main className="main-page">
+      <main className="forums-page">
         <Container>
-          <div className="forums-loading">
+          <div className="forums-page-loading">
             <Spinner animation="border" />
             <p>Cargando foros...</p>
           </div>
@@ -20,7 +34,7 @@ const ForumListPage = () => {
 
   if (error) {
     return (
-      <main className="main-page">
+      <main className="forums-page">
         <Container>
           <Alert variant="danger">
             Error al cargar los foros: {error}
@@ -31,20 +45,37 @@ const ForumListPage = () => {
   }
 
   return (
-    <main className="main-page">
+    <main className="forums-page">
       <Container>
-        <section className="main-hero">
-          <span className="main-badge">Foros disponibles</span>
+        <section className="forums-page-header">
+          <h1 className="forums-page-title">Foros de la comunidad</h1>
 
-          <h1 className="main-title">Foros de la comunidad</h1>
-
-          <p className="main-description-secondary">
+          <p className="forums-page-description">
             Elegí un foro para ver sus publicaciones, leer comentarios y
             participar en las conversaciones de la comunidad TUP.
           </p>
+
+          <div className="forums-page-search-wrapper">
+            <Form.Control
+              type="text"
+              placeholder="Buscar foros..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="forums-page-search"
+            />
+          </div>
+
+          {isAdmin && (
+            <button
+              className="forums-page-create-button"
+              onClick={() => navigate("/newforum")}
+            >
+              + Crear foro
+            </button>
+          )}
         </section>
 
-        <Forums forumsProp={forums || []} />
+        <Forums forumsProp={filteredForums} />
       </Container>
     </main>
   );

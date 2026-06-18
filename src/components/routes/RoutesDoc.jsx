@@ -12,7 +12,8 @@ import NewBans from "../bans/NewBans";
 import Users from "../usersList/UserList";
 import ForumPage from "../forumPage/ForumPage";
 import PostPage from "../postPage/PostPage";
-import ForumListPage from "../forumListPage/ForumListPage";
+import ForumListPage from "../ForumListPage/ForumListPage";
+import NewForum from "../newForum/NewForum";
 
 const RoutesDoc = () => {
   return (
@@ -33,6 +34,7 @@ const RoutesDoc = () => {
 
           {/* Rutas protegidas */}
           <Route element={<Protected />}>
+            <Route path="/newforum" element={<NewForum />} />
             <Route path="/bans" element={<Bans />} />
             <Route path="/newban" element={<NewBans />} />
             <Route path="/users" element={<Users />} />

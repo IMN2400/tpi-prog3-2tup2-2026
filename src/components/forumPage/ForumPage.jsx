@@ -1,32 +1,182 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Row, Col, Card, Spinner, Alert, Button } from "react-bootstrap";
 import { useFetchFromAPI } from "../../services/fetch/UseFetchFromAPI";
-import Post from "../post/Post";
+import "./ForumPage.css";
 
 const ForumPage = () => {
   const { forumId } = useParams();
+  const navigate = useNavigate();
+
+  const {
+    data: forum,
+    loading: loadingForum,
+    error: errorForum,
+  } = useFetchFromAPI(`/forums/${forumId}`, null);
 
   const {
     data: posts,
-    loading,
-    error,
+    loading: loadingPosts,
+    error: errorPosts,
   } = useFetchFromAPI(`/forums/${forumId}/posts`, []);
 
-  if (loading) return <p>Cargando posts...</p>;
+  const rules = forum?.reglas
+    ? forum.reglas
+        .split(".")
+        .map((rule) => rule.trim())
+        .filter((rule) => rule.length > 0)
+    : [
+        "Respeta a los demás usuarios",
+        "No publicar spam",
+        "No contenido ofensivo",
+        "Usa un lenguaje apropiado",
+        "Mantén las discusiones en el tema",
+      ];
 
-  if (error) return <p>Error: {error}</p>;
+  const totalComments = posts?.reduce(
+    (total, post) => total + (post.Comments?.length || 0),
+    0
+  );
+
+  if (loadingForum || loadingPosts) {
+    return (
+      <main className="forum-detail-page">
+        <div className="forum-detail-loading">
+          <Spinner animation="border" />
+          <p>Cargando foro...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (errorForum || errorPosts) {
+    return (
+      <main className="forum-detail-page">
+        <Alert variant="danger">
+          Error al cargar el foro: {errorForum || errorPosts}
+        </Alert>
+      </main>
+    );
+  }
 
   return (
-    <div className="container mt-4">
-      <h1>Posts del foro</h1>
+    <main className="forum-detail-page">
+      <section className="forum-detail-card">
+        <div className="forum-detail-breadcrumb">
+          <Link to="/foros">Foros</Link>
+          <span>{">"}</span>
+          <span>{forum?.nombre || "Foro"}</span>
+        </div>
 
-      {posts.length === 0 ? (
-        <p>No hay posts en este foro todavía.</p>
-      ) : (
-        posts.map((item) => (
-          <Post key={item.id} postId={item.id} />
-        ))
-      )}
-    </div>
+        <div className="forum-detail-header">
+          <div className="forum-detail-header-content">
+            <h1>{forum?.nombre || "Foro"}</h1>
+
+            <p>
+              {forum?.descripcion ||
+                "Espacio general para debatir temas de la comunidad."}
+            </p>
+
+            <div className="forum-detail-meta">
+              <span>Fundador: {forum?.Person?.nombre || "Admin"}</span>
+              <span>{posts?.length || 0} Publicaciones</span>
+            </div>
+          </div>
+
+          <Button variant="success" className="forum-detail-new-post">
+            + Nueva publicación
+          </Button>
+        </div>
+
+        <Row className="forum-detail-body">
+          <Col lg={8}>
+            <section className="forum-detail-posts">
+              <h2>Publicaciones recientes</h2>
+
+              {posts.length === 0 ? (
+                <Card className="forum-detail-empty-card">
+                  <Card.Body>
+                    <Card.Title>No hay publicaciones todavía</Card.Title>
+                    <Card.Text>
+                      Este foro todavía no tiene publicaciones cargadas.
+                    </Card.Text>
+                  </Card.Body>
+                </Card>
+              ) : (
+                <div className="forum-detail-post-list">
+                  {posts.map((post) => (
+                    <article
+                      key={post.id}
+                      className="forum-detail-post-card"
+                      onClick={() => navigate(`/post/${post.id}`)}
+                    >
+                      <div className="forum-detail-post-avatar">
+                        {post.Person?.nombre?.charAt(0).toUpperCase() || "U"}
+                      </div>
+
+                      <div className="forum-detail-post-content">
+                        <h3>{post.title}</h3>
+
+                        <p>{post.body}</p>
+
+                        <div className="forum-detail-post-footer">
+                          <span>
+                            {post.Person?.nombre || "Usuario"} · Hace unas horas
+                          </span>
+
+                          <div className="forum-detail-post-stats">
+                            <span>💬 {post.Comments?.length || 0}</span>
+                            <span>♥️ {post.likeCount || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          </Col>
+
+          <Col lg={4}>
+            <aside className="forum-detail-sidebar">
+              <Card className="forum-detail-side-card">
+                <Card.Body>
+                  <Card.Title>Sobre este foro</Card.Title>
+
+                  <h6>Reglas del foro</h6>
+
+                  <ul className="forum-detail-rules">
+                    {rules.map((rule, index) => (
+                      <li key={index}>{rule}.</li>
+                    ))}
+                  </ul>
+                </Card.Body>
+              </Card>
+
+              <Card className="forum-detail-side-card">
+                <Card.Body>
+                  <Card.Title>Estadísticas</Card.Title>
+
+                  <div className="forum-detail-stat">
+                    <span>Publicaciones:</span>
+                    <strong>{posts?.length || 0}</strong>
+                  </div>
+
+                  <div className="forum-detail-stat">
+                    <span>Comentarios:</span>
+                    <strong>{totalComments || 0}</strong>
+                  </div>
+
+                  <div className="forum-detail-stat">
+                    <span>Estado:</span>
+                    <strong>Activo</strong>
+                  </div>
+                </Card.Body>
+              </Card>
+            </aside>
+          </Col>
+        </Row>
+      </section>
+    </main>
   );
 };
 

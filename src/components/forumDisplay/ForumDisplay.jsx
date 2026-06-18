@@ -1,44 +1,35 @@
-import { Accordion, Button, Card } from "react-bootstrap";
+import { Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import "./ForumDisplay.css";
 
 const ForumDisplay = ({ forum }) => {
   const navigate = useNavigate();
 
-  const { id, nombre, descripcion, reglas, fundadorId, Person } = forum;
+  const { id, nombre, descripcion } = forum;
 
   const goToForum = () => {
     navigate(`/forum/${id}`);
   };
 
-  const fundador = Person?.nombre || `Usuario ${fundadorId}`;
-
   return (
-    <Card className="forum-display-card">
-      <Card.Body>
-        <Card.Title className="forum-display-title">{nombre}</Card.Title>
+    <Card className="single-forum-card">
+      <Card.Body className="single-forum-card-body">
+        <div className="single-forum-card-content">
+          <Card.Title className="single-forum-card-title">
+            {nombre}
+          </Card.Title>
 
-        <Card.Subtitle className="mb-3 text-muted">
-          {descripcion}
-        </Card.Subtitle>
+          <Card.Text className="single-forum-card-description">
+            {descripcion || "Este foro no tiene descripción cargada."}
+          </Card.Text>
+        </div>
 
-        <Accordion>
-          <Accordion.Item eventKey="0">
-            <Accordion.Header>Reglas</Accordion.Header>
-            <Accordion.Body>
-              {reglas || "Este foro no tiene reglas cargadas."}
-            </Accordion.Body>
-          </Accordion.Item>
-
-          <Accordion.Item eventKey="1">
-            <Accordion.Header>Fundador</Accordion.Header>
-            <Accordion.Body>
-              Foro fundado por {fundador}.
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-
-        <Button variant="success" className="mt-3" onClick={goToForum}>
-          Ir al foro
+        <Button
+          variant="outline-success"
+          className="single-forum-card-action"
+          onClick={goToForum}
+        >
+          Ver foro
         </Button>
       </Card.Body>
     </Card>
