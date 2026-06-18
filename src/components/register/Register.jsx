@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
+import "../login/LogIn.css";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -14,15 +15,94 @@ const Register = () => {
     confirmPassword: "",
   });
 
+  const [errors, setErrors] = useState({
+    nick: "",
+    nombre: "",
+    correo: "",
+    edad: "",
+    password: "",
+    confirmPassword: "",
+  });
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const validateForm = () => {
+    const newErrors = {
+      nick: "",
+      nombre: "",
+      correo: "",
+      edad: "",
+      password: "",
+      confirmPassword: "",
+    };
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!form.nick.trim()) {
+      newErrors.nick = "El nick es obligatorio";
+    } else if (form.nick.trim().length < 3) {
+      newErrors.nick = "El nick debe tener al menos 3 caracteres";
+    }
+
+    if (!form.nombre.trim()) {
+      newErrors.nombre = "El nombre es obligatorio";
+    } else if (form.nombre.trim().length < 2) {
+      newErrors.nombre = "El nombre debe tener al menos 2 caracteres";
+    }
+
+    if (!form.correo.trim()) {
+      newErrors.correo = "El correo electrónico es obligatorio";
+    } else if (!emailRegex.test(form.correo)) {
+      newErrors.correo = "Ingrese un correo electrónico válido";
+    }
+
+    if (!form.edad.trim()) {
+      newErrors.edad = "La edad es obligatoria";
+    } else if (Number(form.edad) < 13) {
+      newErrors.edad = "La edad mínima es 13 años";
+    }
+
+    if (!form.password.trim()) {
+      newErrors.password = "La contraseña es obligatoria";
+    } else if (form.password.length < 6) {
+      newErrors.password = "La contraseña debe tener al menos 6 caracteres";
+    }
+
+    if (!form.confirmPassword.trim()) {
+      newErrors.confirmPassword = "Debe confirmar la contraseña";
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Las contraseñas no coinciden";
+    }
+
+    setErrors(newErrors);
+
+    return (
+      !newErrors.nick &&
+      !newErrors.nombre &&
+      !newErrors.correo &&
+      !newErrors.edad &&
+      !newErrors.password &&
+      !newErrors.confirmPassword
+    );
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    setErrors({
+      ...errors,
+      [name]: "",
+    });
+
+    setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e) => {
@@ -30,13 +110,14 @@ const Register = () => {
 
     setError("");
     setSuccess("");
-    setLoading(true);
 
-    if (form.password !== form.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      setLoading(false);
+    const isValid = validateForm();
+
+    if (!isValid) {
       return;
     }
+
+    setLoading(true);
 
     try {
       const response = await fetch("http://localhost:3000/register", {
@@ -64,12 +145,11 @@ const Register = () => {
       setTimeout(() => {
         navigate("/login");
       }, 1500);
-
     } catch (error) {
       setError(error.message);
     } finally {
-    setLoading(false);
-  }
+      setLoading(false);
+    }
   };
 
   return (
@@ -101,8 +181,8 @@ const Register = () => {
                   </Alert>
                 )}
 
-                <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3">
+                <Form onSubmit={handleSubmit} noValidate>
+                  <Form.Group className="mb-3" controlId="nick">
                     <Form.Label className="login-label">Nick</Form.Label>
                     <Form.Control
                       className="login-input"
@@ -112,11 +192,14 @@ const Register = () => {
                       onChange={handleChange}
                       placeholder="Ej: Juan123"
                       autoComplete="username"
-                      required
+                      isInvalid={!!errors.nick}
                     />
+                    <Form.Control.Feedback type="invalid" className="login-error">
+                      {errors.nick}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-3" controlId="nombre">
                     <Form.Label className="login-label">Nombre</Form.Label>
                     <Form.Control
                       className="login-input"
@@ -126,25 +209,33 @@ const Register = () => {
                       onChange={handleChange}
                       placeholder="Ingresá tu nombre"
                       autoComplete="name"
-                      required
+                      isInvalid={!!errors.nombre}
                     />
+                    <Form.Control.Feedback type="invalid" className="login-error">
+                      {errors.nombre}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-3">
-                    <Form.Label className="login-label">Correo electrónico</Form.Label>
+                  <Form.Group className="mb-3" controlId="correo">
+                    <Form.Label className="login-label">
+                      Correo electrónico
+                    </Form.Label>
                     <Form.Control
                       className="login-input"
-                      type="email"
+                      type="text"
                       name="correo"
                       value={form.correo}
                       onChange={handleChange}
                       placeholder="ejemplo@mail.com"
                       autoComplete="email"
-                      required
+                      isInvalid={!!errors.correo}
                     />
+                    <Form.Control.Feedback type="invalid" className="login-error">
+                      {errors.correo}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-3" controlId="edad">
                     <Form.Label className="login-label">Edad</Form.Label>
                     <Form.Control
                       className="login-input"
@@ -154,11 +245,14 @@ const Register = () => {
                       value={form.edad}
                       onChange={handleChange}
                       placeholder="13+"
-                      required
+                      isInvalid={!!errors.edad}
                     />
+                    <Form.Control.Feedback type="invalid" className="login-error">
+                      {errors.edad}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-3" controlId="password">
                     <Form.Label className="login-label">Contraseña</Form.Label>
                     <Form.Control
                       className="login-input"
@@ -168,12 +262,17 @@ const Register = () => {
                       onChange={handleChange}
                       placeholder="Creá una contraseña"
                       autoComplete="new-password"
-                      required
+                      isInvalid={!!errors.password}
                     />
+                    <Form.Control.Feedback type="invalid" className="login-error">
+                      {errors.password}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-4">
-                    <Form.Label className="login-label">Confirmar contraseña</Form.Label>
+                  <Form.Group className="mb-4" controlId="confirmPassword">
+                    <Form.Label className="login-label">
+                      Confirmar contraseña
+                    </Form.Label>
                     <Form.Control
                       className="login-input"
                       type="password"
@@ -182,8 +281,11 @@ const Register = () => {
                       onChange={handleChange}
                       placeholder="Repetí tu contraseña"
                       autoComplete="new-password"
-                      required
+                      isInvalid={!!errors.confirmPassword}
                     />
+                    <Form.Control.Feedback type="invalid" className="login-error">
+                      {errors.confirmPassword}
+                    </Form.Control.Feedback>
                   </Form.Group>
 
                   <Button

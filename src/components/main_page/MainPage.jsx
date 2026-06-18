@@ -1,70 +1,134 @@
 import { Container, Row, Col, Card } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import "./MainPage.css";
 
 const MainPage = () => {
   return (
     <main className="main-page">
       <Container>
-        <section className="main-hero">
-          <span className="main-badge">Comunidad TUP</span>
+        <section className="main-hero-section">
+          <Row className="align-items-center">
+            <Col lg={6}>
+              <div className="main-hero-content">
+                <span className="main-badge">
+                  Bienvenido a la comunidad
+                </span>
 
-          <h1 className="main-title">Gran Foro TUP</h1>
+                <h1 className="main-title">
+                  El lugar para debatir, aprender y compartir
+                </h1>
 
-          <p className="main-description">
-            Gran Foro TUP es un espacio digital pensado para estudiantes de la
-            Tecnicatura Universitaria en Programación. Su objetivo es facilitar
-            la participación, el intercambio de ideas, la resolución de dudas y
-            la comunicación entre alumnos dentro de un entorno organizado.
-          </p>
+                <p className="main-description">
+                  Unite a la comunidad de TUP y participá en conversaciones
+                  sobre programación, tecnología, materias, trabajos prácticos
+                  y proyectos académicos.
+                </p>
 
-          <p className="main-description-secondary">
-            Desde la plataforma se pueden consultar foros, leer publicaciones,
-            ver comentarios y participar activamente iniciando sesión. La idea
-            principal es centralizar las conversaciones académicas y evitar que
-            la información importante quede dispersa en distintos canales.
-          </p>
+                <Link to="/foros" className="main-action-button">
+                  Ver foros disponibles
+                  <span>→</span>
+                </Link>
+              </div>
+            </Col>
+
+            <Col lg={6}>
+              <div className="main-visual-area">
+                <div className="main-visual-background">
+                  <span className="main-bg-dot dot-one"></span>
+                  <span className="main-bg-dot dot-two"></span>
+                  <span className="main-bg-line line-one"></span>
+                  <span className="main-bg-line line-two"></span>
+                </div>
+
+                <span className="main-floating-heart">♥</span>
+
+                <div className="main-circle">
+                  <div className="main-chat-card main-chat-card-top">
+                    <div className="main-chat-line dark" />
+                    <div className="main-chat-line medium" />
+                  </div>
+
+                  <div className="main-chat-card main-chat-card-bottom">
+                    <div className="main-chat-line medium" />
+                    <div className="main-chat-line" />
+                    <div className="main-chat-line short" />
+                  </div>
+                </div>
+
+                <div className="main-floating-icon left">👤</div>
+                <div className="main-floating-icon right">👥</div>
+              </div>
+            </Col>
+          </Row>
         </section>
 
-        <section className="main-content-section">
+        <section className="main-benefits-section">
           <Row className="g-4">
-            <Col md={12}>
-              <Card className="main-feature-card">
+            <Col md={6} lg={3}>
+              <Card className="main-benefit-card">
                 <Card.Body>
-                  <Card.Title>¿Para qué sirve?</Card.Title>
+                  <div className="main-benefit-icon">👥</div>
+                  <Card.Title>Comunidad</Card.Title>
                   <Card.Text>
-                    Sirve para organizar consultas, debates y publicaciones
-                    relacionadas con materias, programación, trabajos prácticos,
-                    proyectos y temas generales de la carrera.
+                    Conectá con personas que comparten tus intereses.
                   </Card.Text>
                 </Card.Body>
               </Card>
             </Col>
 
-            <Col md={12}>
-              <Card className="main-feature-card">
+            <Col md={6} lg={3}>
+              <Card className="main-benefit-card">
                 <Card.Body>
-                  <Card.Title>Participación de usuarios</Card.Title>
+                  <div className="main-benefit-icon">📖</div>
+                  <Card.Title>Aprendizaje</Card.Title>
                   <Card.Text>
-                    Cualquier visitante puede ingresar y leer el contenido
-                    disponible. Para comentar o crear publicaciones, el usuario
-                    debe iniciar sesión con una cuenta registrada.
+                    Aprendé de otros y compartí tu conocimiento.
                   </Card.Text>
                 </Card.Body>
               </Card>
             </Col>
 
-            <Col md={12}>
-              <Card className="main-feature-card">
+            <Col md={6} lg={3}>
+              <Card className="main-benefit-card">
                 <Card.Body>
-                  <Card.Title>Moderación y organización</Card.Title>
+                  <div className="main-benefit-icon">⚡</div>
+                  <Card.Title>Actualidad</Card.Title>
                   <Card.Text>
-                    Los administradores pueden gestionar usuarios, foros y
-                    acciones de moderación para mantener un espacio ordenado,
-                    respetuoso y útil para la comunidad.
+                    Enterate de novedades, consultas y tendencias.
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+
+            <Col md={6} lg={3}>
+              <Card className="main-benefit-card">
+                <Card.Body>
+                  <div className="main-benefit-icon">🛡</div>
+                  <Card.Title>Respeto</Card.Title>
+                  <Card.Text>
+                    Un ambiente seguro y respetuoso para todos.
                   </Card.Text>
                 </Card.Body>
               </Card>
             </Col>
           </Row>
+        </section>
+
+        <section className="main-stats-bar">
+          <div className="main-stat-item">
+            <strong>+500</strong>
+            <span>Usuarios activos</span>
+          </div>
+
+          <div className="main-stat-item">
+            <strong>+1200</strong>
+            <span>Publicaciones</span>
+          </div>
+
+          <div className="main-stat-item">
+            <strong>+3000</strong>
+            <span>Comentarios</span>
+          </div>
         </section>
       </Container>
     </main>
