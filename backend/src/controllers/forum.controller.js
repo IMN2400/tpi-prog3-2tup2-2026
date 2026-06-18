@@ -1,13 +1,22 @@
-import { Forum, Person } from "../models/index.js";
+import { Forum, Person, Post, Comment } from "../models/index.js";
 
 export const getForums = async (req, res) => {
   try {
     const forums = await Forum.findAll({
-      include: {
-        model: Person,
-        attributes: ["id", "nombre", "correo", "rol"],
-      },
+      include: [
+        {
+          model: Person,
+          attributes: ["id", "nombre", "correo", "rol"],
+        },
+        {
+          model: Post,
+          attributes: ["id", "status"],
+          required: false,
+          where: { status: true },
+        },
+      ],
     });
+
     res.json(forums);
   } catch (error) {
     res.status(500).json({

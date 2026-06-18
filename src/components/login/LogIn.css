@@ -230,5 +230,26 @@
   font-weight: 600;
 }
 
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #f9fcfa inset !important;
+  box-shadow: 0 0 0 1000px #f9fcfa inset !important;
+  -webkit-text-fill-color: #1f2d24 !important;
+  caret-color: #1f2d24;
+  border: 1px solid #d8e6dc;
+  transition: background-color 9999s ease-in-out 0s;
+}
 
+.login-input:-webkit-autofill:focus {
+  -webkit-box-shadow:
+    0 0 0 1000px #ffffff inset,
+    0 0 0 0.2rem rgba(6, 68, 32, 0.08) !important;
+  box-shadow:
+    0 0 0 1000px #ffffff inset,
+    0 0 0 0.2rem rgba(6, 68, 32, 0.08) !important;
+  -webkit-text-fill-color: #1f2d24 !important;
+  caret-color: #1f2d24;
+  border-color: #8eb59a;
+}
 

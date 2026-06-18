@@ -2,10 +2,14 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Row, Col, Card, Spinner, Alert, Button } from "react-bootstrap";
 import { useFetchFromAPI } from "../../services/fetch/UseFetchFromAPI";
 import "./ForumPage.css";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
 
 const ForumPage = () => {
   const { forumId } = useParams();
   const navigate = useNavigate();
+  
+  const { requireAuth } = useRequireAuth();
+
 
   const {
     data: forum,
@@ -81,8 +85,13 @@ const ForumPage = () => {
               <span>{posts?.length || 0} Publicaciones</span>
             </div>
           </div>
-
-          <Button variant="success" className="forum-detail-new-post">
+          <Button
+            variant="success"
+            className="forum-detail-new-post"
+            onClick={() =>
+              requireAuth(() => navigate(`/forums/${forumId}/posts/new`))
+            }
+          >
             + Nueva publicación
           </Button>
         </div>
@@ -124,9 +133,22 @@ const ForumPage = () => {
                           </span>
 
                           <div className="forum-detail-post-stats">
-                            <span>💬 {post.Comments?.length || 0}</span>
-                            <span>♥️ {post.likeCount || 0}</span>
-                          </div>
+                          <span className="forum-detail-comments-count">
+                            comentarios {post.Comments?.length || 0}
+                          </span>
+
+                          <span className="forum-detail-like-count">
+                            <svg
+                              className="forum-detail-like-icon"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+
+                            {post.likeCount || 0}
+                          </span>
+                        </div>
                         </div>
                       </div>
                     </article>

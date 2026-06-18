@@ -14,6 +14,7 @@ import ForumPage from "../forumPage/ForumPage";
 import PostPage from "../postPage/PostPage";
 import ForumListPage from "../ForumListPage/ForumListPage";
 import NewForum from "../newForum/NewForum";
+import NewPost from "../newPost/NewPost";
 
 const RoutesDoc = () => {
   return (
@@ -38,6 +39,7 @@ const RoutesDoc = () => {
             <Route path="/bans" element={<Bans />} />
             <Route path="/newban" element={<NewBans />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/forums/:forumId/posts/new" element={<NewPost />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

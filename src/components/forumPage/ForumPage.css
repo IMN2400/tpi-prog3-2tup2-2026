@@ -1,17 +1,17 @@
 .forum-detail-page {
   width: 100%;
   min-height: 100vh;
-  background: #f4faf6;
+  background: transparent;
   padding: 1.6rem;
 }
 
 .forum-detail-card {
   width: 100%;
   min-height: calc(100vh - 3.2rem);
-  background: #ffffff;
-  border: 1px solid #d7eadc;
-  border-radius: 18px;
-  box-shadow: 0 8px 25px rgba(6, 68, 32, 0.08);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   padding: 2.2rem;
 }
 
@@ -40,6 +40,7 @@
   justify-content: center;
   align-items: flex-start;
   margin-bottom: 4rem;
+  background: transparent;
 }
 
 .forum-detail-header-content {
@@ -69,10 +70,10 @@
 }
 
 .forum-detail-meta span {
-  border: 1px solid #d7eadc;
-  background: #f8fbf9;
-  border-radius: 9px;
-  padding: 0.6rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0.3rem 0.6rem;
   color: #111827;
   font-weight: 600;
   font-size: 0.92rem;
@@ -103,6 +104,7 @@
   font-size: 1.45rem;
   font-weight: 900;
   margin-bottom: 1.2rem;
+  text-align: center;
 }
 
 .forum-detail-post-list {
@@ -118,18 +120,19 @@
   gap: 1.4rem;
   width: 100%;
   min-height: 130px;
-  background: #ffffff;
-  border: 1px solid #d7eadc;
+  background: #fbfdfb;
+  border: 1px solid #c9e0d1;
   border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(6, 68, 32, 0.08);
+  box-shadow: 0 8px 20px rgba(6, 68, 32, 0.07);
   padding: 1.5rem 1.8rem;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .forum-detail-post-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(6, 68, 32, 0.13);
+  background: #f3faf6;
+  box-shadow: 0 10px 26px rgba(6, 68, 32, 0.12);
 }
 
 .forum-detail-post-avatar {
@@ -156,6 +159,7 @@
   font-size: 1.35rem;
   font-weight: 900;
   margin-bottom: 0.55rem;
+  text-align: center;
 }
 
 .forum-detail-post-content p {
@@ -163,6 +167,7 @@
   font-size: 1rem;
   margin-bottom: 0.9rem;
   line-height: 1.5;
+  text-align: center;
 }
 
 .forum-detail-post-footer {
@@ -175,11 +180,42 @@
   font-weight: 500;
 }
 
+/* Comentarios y likes de cada publicación */
 .forum-detail-post-stats {
   display: flex;
-  gap: 1.2rem;
-  color: #064420;
-  font-weight: 800;
+  align-items: center;
+  gap: 0.9rem;
+  color: #111111;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.forum-detail-comments-count {
+  color: #111111;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.forum-detail-like-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #111111;
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.forum-detail-like-icon {
+  width: 14px;
+  height: 14px;
+  color: #111111;
+  stroke: #111111;
+  stroke-width: 1.8;
+  fill: none;
+  flex-shrink: 0;
 }
 
 /* Sidebar derecha */
@@ -190,9 +226,10 @@
 }
 
 .forum-detail-side-card {
-  border: 1px solid #d7eadc;
+  background: #fbfdfb;
+  border: 1px solid #c9e0d1;
   border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(6, 68, 32, 0.08);
+  box-shadow: 0 8px 20px rgba(6, 68, 32, 0.07);
 }
 
 .forum-detail-side-card .card-body {
@@ -204,6 +241,7 @@
   font-size: 1.35rem;
   font-weight: 900;
   margin-bottom: 1.3rem;
+  text-align: center;
 }
 
 .forum-detail-side-card h6 {
@@ -211,6 +249,7 @@
   font-weight: 900;
   font-size: 1rem;
   margin-bottom: 1rem;
+  text-align: center;
 }
 
 /* Reglas con puntitos verdes */
@@ -256,9 +295,10 @@
 }
 
 .forum-detail-empty-card {
-  border: 1px dashed #064420;
-  background: #f4faf6;
+  background: #fbfdfb;
+  border: 1px dashed #c9e0d1;
   border-radius: 14px;
+  box-shadow: none;
 }
 
 .forum-detail-empty-card .card-title {

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
 import "./LogIn.css";
+import { useAuth } from "../../context/AuthContext";
 
 const LogIn = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({
     correo: "",
@@ -88,8 +90,7 @@ const LogIn = () => {
         throw new Error(data.message || "Error al iniciar sesión");
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      login(data.user, data.token);
 
       navigate("/");
     } catch (error) {
@@ -160,7 +161,7 @@ return (
 
                     <Form.Control
                       className="login-input"
-                      type="email"
+                      type="text"
                       name="correo"
                       placeholder="Ingrese su correo electrónico"
                       value={form.correo}
@@ -215,5 +216,5 @@ return (
     </Container>
   </main>
 );
-}
+};
 export default LogIn;
