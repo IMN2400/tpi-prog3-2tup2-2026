@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Form, Spinner } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import "./Post.css";
@@ -10,6 +10,7 @@ const API_URL = "http://localhost:3000";
 const Post = ({ postId }) => {
   const { token, user } = useAuth();
   const { requireAuth } = useRequireAuth();
+  const navigate = useNavigate();
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -25,6 +26,28 @@ const Post = ({ postId }) => {
   const [sortBy, setSortBy] = useState("best");
   const [expandedThreads, setExpandedThreads] = useState({});
   const [likedByMe, setLikedByMe] = useState(false);
+
+  const canBanUser = (targetUser) => {
+    const isAdmin = user?.rol === "ADMIN" || user?.rol === "SYSADMIN";
+
+    if (!isAdmin) return false;
+    if (!targetUser?.id) return false;
+
+    // Evita que un admin se banee a sí mismo
+    if (Number(targetUser.id) === Number(user?.id)) return false;
+
+    // Un ADMIN común no debería poder banear a un SYSADMIN
+    if (user?.rol === "ADMIN" && targetUser?.rol === "SYSADMIN") return false;
+
+    return true;
+  };
+
+  const goToBanForm = (targetUser) => {
+    const userId = targetUser.id;
+    const userName = targetUser.nombre || targetUser.nick || "Usuario";
+
+    navigate(`/newban?userId=${userId}&userName=${encodeURIComponent(userName)}`);
+  };
 
   const loadData = async () => {
     try {
@@ -287,7 +310,19 @@ const Post = ({ postId }) => {
           <div className="thread-comment-body">
             <div className="thread-comment-meta">
               <span className="thread-comment-author">{author}</span>
+
+              {canBanUser(comment.Person) && (
+                <button
+                  type="button"
+                  className="ban-user-link"
+                  onClick={() => goToBanForm(comment.Person)}
+                >
+                  Banear
+                </button>
+              )}
+
               <span className="thread-comment-dot">•</span>
+
               <span className="thread-comment-date">
                 {formatDate(comment.postDate || comment.createdAt)}
               </span>
@@ -389,7 +424,19 @@ const Post = ({ postId }) => {
 
             <div className="post-main-author-row">
               <span className="post-main-author">{authorName}</span>
+
+              {canBanUser(post.Person) && (
+                <button
+                  type="button"
+                  className="ban-user-link"
+                  onClick={() => goToBanForm(post.Person)}
+                >
+                  Banear
+                </button>
+              )}
+
               <span className="post-main-dot">•</span>
+
               <span className="post-main-date">
                 {formatDate(post.postDate || post.createdAt)}
               </span>
@@ -400,28 +447,30 @@ const Post = ({ postId }) => {
 
           <p className="post-main-description">{post.body}</p>
 
-            <div className="post-main-actions">
-              <button
-                type="button"
-                onClick={handleLikePost}
-                className={`post-like-button ${likedByMe ? "post-like-active" : ""}`}
-                aria-label={likedByMe ? "Quitar me gusta" : "Dar me gusta"}
+          <div className="post-main-actions">
+            <button
+              type="button"
+              onClick={handleLikePost}
+              className={`post-like-button ${
+                likedByMe ? "post-like-active" : ""
+              }`}
+              aria-label={likedByMe ? "Quitar me gusta" : "Dar me gusta"}
+            >
+              <svg
+                className="post-like-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
               >
-                <svg
-                  className="post-like-icon"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                </svg>
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
 
-                <span>{post.likeCount || 0}</span>
-              </button>
+              <span>{post.likeCount || 0}</span>
+            </button>
 
-              <span className="post-comments-count">
-                {comments.length} comentarios
-              </span>
-            </div>
+            <span className="post-comments-count">
+              {comments.length} comentarios
+            </span>
+          </div>
         </article>
 
         <section className="post-comment-entry">
