@@ -1,28 +1,37 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Row, Col, Card, Spinner, Alert, Button } from "react-bootstrap";
 import { useFetchFromAPI } from "../../services/fetch/UseFetchFromAPI";
-import "./ForumPage.css";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
+import "./ForumPage.css";
 
 const ForumPage = () => {
+  // obtiene el id del foro desde la url
   const { forumId } = useParams();
+
+
   const navigate = useNavigate();
-  
+
+  // verifica que el usuario este loggeado
   const { requireAuth } = useRequireAuth();
 
-
+  // trae los datos del foro desde el backend
   const {
     data: forum,
     loading: loadingForum,
     error: errorForum,
   } = useFetchFromAPI(`/forums/${forumId}`, null);
 
+  // trae los posts del foro desde el backend
   const {
     data: posts,
     loading: loadingPosts,
     error: errorPosts,
   } = useFetchFromAPI(`/forums/${forumId}/posts`, []);
 
+  // asegura que sea un array
+  const forumPosts = Array.isArray(posts) ? posts : [];
+
+  // arma la lista de reglas, si no tiene reglas usa reglas por defecto
   const rules = forum?.reglas
     ? forum.reglas
         .split(".")
@@ -32,14 +41,23 @@ const ForumPage = () => {
         "Respeta a los demás usuarios",
         "No publicar spam",
         "No contenido ofensivo",
-        "Usa un lenguaje apropiado",
-        "Mantén las discusiones en el tema",
       ];
 
-  const totalComments = posts?.reduce(
+  // calcula la cantidad de comentarios
+  const totalComments = forumPosts.reduce(
     (total, post) => total + (post.Comments?.length || 0),
     0
   );
+
+  // maneja el "crear publicacion", si esta loggeado lo lleva al form
+  const handleNewPost = () => {
+    requireAuth(() => navigate(`/forums/${forumId}/posts/new`));
+  };
+
+  // maneja el click sobre un post
+  const handleGoToPost = (postId) => {
+    navigate(`/post/${postId}`);
+  };
 
   if (loadingForum || loadingPosts) {
     return (
@@ -82,15 +100,14 @@ const ForumPage = () => {
 
             <div className="forum-detail-meta">
               <span>Fundador: {forum?.Person?.nombre || "Admin"}</span>
-              <span>{posts?.length || 0} Publicaciones</span>
+              <span>{forumPosts.length} Publicaciones</span>
             </div>
           </div>
+
           <Button
             variant="success"
             className="forum-detail-new-post"
-            onClick={() =>
-              requireAuth(() => navigate(`/forums/${forumId}/posts/new`))
-            }
+            onClick={handleNewPost}
           >
             + Nueva publicación
           </Button>
@@ -101,7 +118,7 @@ const ForumPage = () => {
             <section className="forum-detail-posts">
               <h2>Publicaciones recientes</h2>
 
-              {posts.length === 0 ? (
+              {forumPosts.length === 0 ? (
                 <Card className="forum-detail-empty-card">
                   <Card.Body>
                     <Card.Title>No hay publicaciones todavía</Card.Title>
@@ -112,11 +129,11 @@ const ForumPage = () => {
                 </Card>
               ) : (
                 <div className="forum-detail-post-list">
-                  {posts.map((post) => (
+                  {forumPosts.map((post) => (
                     <article
                       key={post.id}
                       className="forum-detail-post-card"
-                      onClick={() => navigate(`/post/${post.id}`)}
+                      onClick={() => handleGoToPost(post.id)}
                     >
                       <div className="forum-detail-post-avatar">
                         {post.Person?.nombre?.charAt(0).toUpperCase() || "U"}
@@ -133,22 +150,22 @@ const ForumPage = () => {
                           </span>
 
                           <div className="forum-detail-post-stats">
-                          <span className="forum-detail-comments-count">
-                            comentarios {post.Comments?.length || 0}
-                          </span>
+                            <span className="forum-detail-comments-count">
+                              comentarios {post.Comments?.length || 0}
+                            </span>
 
-                          <span className="forum-detail-like-count">
-                            <svg
-                              className="forum-detail-like-icon"
-                              viewBox="0 0 24 24"
-                              aria-hidden="true"
-                            >
-                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                            </svg>
+                            <span className="forum-detail-like-count">
+                              <svg
+                                className="forum-detail-like-icon"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                              </svg>
 
-                            {post.likeCount || 0}
-                          </span>
-                        </div>
+                              {post.likeCount || 0}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </article>
@@ -180,12 +197,12 @@ const ForumPage = () => {
 
                   <div className="forum-detail-stat">
                     <span>Publicaciones:</span>
-                    <strong>{posts?.length || 0}</strong>
+                    <strong>{forumPosts.length}</strong>
                   </div>
 
                   <div className="forum-detail-stat">
                     <span>Comentarios:</span>
-                    <strong>{totalComments || 0}</strong>
+                    <strong>{totalComments}</strong>
                   </div>
 
                   <div className="forum-detail-stat">

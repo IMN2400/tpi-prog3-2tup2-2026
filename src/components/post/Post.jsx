@@ -8,7 +8,7 @@ import "./Post.css";
 const API_URL = "http://localhost:3000";
 
 const Post = ({ postId }) => {
-  const { token, user } = useAuth();
+  const { token, user, isAdmin, isSysAdmin } = useAuth();
   const { requireAuth } = useRequireAuth();
   const navigate = useNavigate();
 
@@ -28,16 +28,41 @@ const Post = ({ postId }) => {
   const [likedByMe, setLikedByMe] = useState(false);
 
   const canBanUser = (targetUser) => {
-    const isAdmin = user?.rol === "ADMIN" || user?.rol === "SYSADMIN";
+    if (!isAdmin) {
+      return false;
+    }
 
-    if (!isAdmin) return false;
-    if (!targetUser?.id) return false;
+    if (!targetUser?.id) {
+      return false;
+    }
 
-    // Evita que un admin se banee a sí mismo
-    if (Number(targetUser.id) === Number(user?.id)) return false;
+    if (Number(targetUser.id) === Number(user?.id)) {
+      return false;
+    }
 
-    // Un ADMIN común no debería poder banear a un SYSADMIN
-    if (user?.rol === "ADMIN" && targetUser?.rol === "SYSADMIN") return false;
+    if (!isSysAdmin && targetUser?.rol === "SYSADMIN") {
+      return false;
+    }
+
+    return true;
+  };
+
+  const canMakeAdmin = (targetUser) => {
+    if (!isSysAdmin) {
+      return false;
+    }
+
+    if (!targetUser?.id) {
+      return false;
+    }
+
+    if (Number(targetUser.id) === Number(user?.id)) {
+      return false;
+    }
+
+    if (targetUser.rol && targetUser.rol !== "USER") {
+      return false;
+    }
 
     return true;
   };
@@ -47,6 +72,46 @@ const Post = ({ postId }) => {
     const userName = targetUser.nombre || targetUser.nick || "Usuario";
 
     navigate(`/newban?userId=${userId}&userName=${encodeURIComponent(userName)}`);
+  };
+
+  const handleMakeAdmin = (targetUser) => {
+    requireAuth(async () => {
+      const confirmed = window.confirm(
+        `¿Querés convertir a ${targetUser.nombre || "este usuario"} en ADMIN?`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        setError("");
+
+        const response = await fetch(
+          `${API_URL}/persons/${targetUser.id}/make-admin`,
+          {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "No se pudo convertir el usuario en ADMIN"
+          );
+        }
+
+        alert(data.message || "Usuario convertido en ADMIN correctamente");
+
+        loadData();
+      } catch (err) {
+        setError(err.message);
+      }
+    });
   };
 
   const loadData = async () => {
@@ -88,7 +153,9 @@ const Post = ({ postId }) => {
   }, [postId]);
 
   const formatDate = (date) => {
-    if (!date) return "Hace un rato";
+    if (!date) {
+      return "Hace un rato";
+    }
 
     const d = new Date(date);
 
@@ -105,6 +172,30 @@ const Post = ({ postId }) => {
 
   const getInitial = (name) => {
     return name?.charAt(0)?.toUpperCase() || "U";
+  };
+
+  const getRoleLabel = (role) => {
+    if (role === "SYSADMIN") {
+      return "SYSADMIN";
+    }
+
+    if (role === "ADMIN") {
+      return "ADMIN";
+    }
+
+    return "USER";
+  };
+
+  const getRoleClass = (role) => {
+    if (role === "SYSADMIN") {
+      return "role-sysadmin";
+    }
+
+    if (role === "ADMIN") {
+      return "role-admin";
+    }
+
+    return "role-user";
   };
 
   const buildCommentTree = (list) => {
@@ -291,6 +382,7 @@ const Post = ({ postId }) => {
 
   const renderCommentNode = (comment, level = 0) => {
     const author = comment.Person?.nombre || "Usuario";
+    const role = comment.Person?.rol;
     const children = comment.children || [];
     const isExpanded = !!expandedThreads[comment.id];
 
@@ -311,6 +403,10 @@ const Post = ({ postId }) => {
             <div className="thread-comment-meta">
               <span className="thread-comment-author">{author}</span>
 
+              <span className={`user-role-badge ${getRoleClass(role)}`}>
+                {getRoleLabel(role)}
+              </span>
+
               {canBanUser(comment.Person) && (
                 <button
                   type="button"
@@ -318,6 +414,16 @@ const Post = ({ postId }) => {
                   onClick={() => goToBanForm(comment.Person)}
                 >
                   Banear
+                </button>
+              )}
+
+              {canMakeAdmin(comment.Person) && (
+                <button
+                  type="button"
+                  className="make-admin-link"
+                  onClick={() => handleMakeAdmin(comment.Person)}
+                >
+                  Hacer admin
                 </button>
               )}
 
@@ -398,6 +504,7 @@ const Post = ({ postId }) => {
   }
 
   const authorName = post.Person?.nombre || "Usuario";
+  const authorRole = post.Person?.rol;
   const forumName = post.Forum?.nombre || "Foro";
   const forumId = post.Forum?.id || post.forumId;
 
@@ -425,6 +532,10 @@ const Post = ({ postId }) => {
             <div className="post-main-author-row">
               <span className="post-main-author">{authorName}</span>
 
+              <span className={`user-role-badge ${getRoleClass(authorRole)}`}>
+                {getRoleLabel(authorRole)}
+              </span>
+
               {canBanUser(post.Person) && (
                 <button
                   type="button"
@@ -432,6 +543,16 @@ const Post = ({ postId }) => {
                   onClick={() => goToBanForm(post.Person)}
                 >
                   Banear
+                </button>
+              )}
+
+              {canMakeAdmin(post.Person) && (
+                <button
+                  type="button"
+                  className="make-admin-link"
+                  onClick={() => handleMakeAdmin(post.Person)}
+                >
+                  Hacer admin
                 </button>
               )}
 

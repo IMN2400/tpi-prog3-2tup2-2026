@@ -7,9 +7,10 @@ import {
   createPerson,
   updatePerson,
   deletePerson,
+  makeAdmin,
 } from "../controllers/person.controller.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import { canManagePersons } from "../middlewares/checkPersonPermissions.js";
+import { canManagePersons, onlySysAdmin } from "../middlewares/checkPersonPermissions.js";
 
 const router = Router();
 
@@ -28,6 +29,13 @@ router.delete(
   verifyToken,
   canManagePersons,
   deletePerson
+);
+
+router.patch(
+  "/persons/:id/make-admin",
+  verifyToken,
+  onlySysAdmin,
+  makeAdmin
 );
 
 router.post("/persons", validateCreatePerson, createPerson);

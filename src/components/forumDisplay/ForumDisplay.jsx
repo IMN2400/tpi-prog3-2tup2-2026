@@ -2,6 +2,7 @@ import { Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./forumDisplay.css";
 
+//Recibe por prop un foro mapeado por forum(padre) y lo renderiza visualmente
 const ForumDisplay = ({ forum }) => {
   const navigate = useNavigate();
 
@@ -11,7 +12,8 @@ const ForumDisplay = ({ forum }) => {
   const totalPosts = posts.length;
   const postsLabel = totalPosts === 1 ? "post" : "posts";
 
-  const goToForum = () => {
+  // al tocar el boton "ir al foro" arma una url con el id del foro clickeado y usa navigate para ir a esa ruta.
+  const handleGoToForum = () => {
     navigate(`/forum/${id}`);
   };
 
@@ -37,7 +39,7 @@ const ForumDisplay = ({ forum }) => {
           <Button
             variant="outline-success"
             className="single-forum-card-action"
-            onClick={goToForum}
+            onClick={handleGoToForum}
           >
             Ir al foro
           </Button>

@@ -63,3 +63,21 @@ export const canManagePersons = async (req, res, next) => {
     });
   }
 };
+
+export const onlySysAdmin = (req, res, next) => {
+  const loggedUser = req.user;
+
+  if (!loggedUser) {
+    return res.status(401).json({
+      message: "Usuario no autenticado",
+    });
+  }
+
+  if (loggedUser.rol !== "SYSADMIN") {
+    return res.status(403).json({
+      message: "Solo un SYSADMIN puede realizar esta acción",
+    });
+  }
+
+  next();
+};

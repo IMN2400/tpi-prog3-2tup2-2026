@@ -3,16 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Container, Alert, Spinner, Form } from "react-bootstrap";
 import Forums from "../forums/Forums";
 import { useFetchFromAPI } from "../../services/fetch/UseFetchFromAPI";
+import { useAuth } from "../../context/AuthContext";
 import "./ForumListPage.css";
 
 const ForumListPage = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   const { data: forums, loading, error } = useFetchFromAPI("/forums", []);
   const [search, setSearch] = useState("");
-
-  const user = JSON.parse(localStorage.getItem("user"));
-  const isAdmin = user?.rol === "ADMIN" || user?.rol === "SYSADMIN";
 
   const filteredForums = (forums || []).filter((forum) => {
     const text = `${forum.nombre || ""} ${forum.descripcion || ""}`.toLowerCase();

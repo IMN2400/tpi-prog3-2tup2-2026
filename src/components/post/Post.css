@@ -529,3 +529,57 @@
   border-color: rgba(185, 28, 28, 0.45);
   color: #7f1d1d;
 }
+
+.make-admin-link {
+  border: 1px solid rgba(180, 133, 0, 0.28);
+  background: rgba(245, 190, 60, 0.12);
+  color: #8a6500;
+  border-radius: 999px;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  margin-left: 0.4rem;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.make-admin-link:hover {
+  background: rgba(245, 190, 60, 0.22);
+  border-color: rgba(180, 133, 0, 0.5);
+  color: #6f5200;
+}
+
+.user-role-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.08rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.role-user {
+  background: rgba(69, 99, 83, 0.08);
+  border-color: rgba(69, 99, 83, 0.18);
+  color: #456353;
+}
+
+.role-admin {
+  background: rgba(6, 68, 32, 0.1);
+  border-color: rgba(6, 68, 32, 0.22);
+  color: #064420;
+}
+
+.role-sysadmin {
+  background: rgba(245, 190, 60, 0.14);
+  border-color: rgba(180, 133, 0, 0.32);
+  color: #8a6500;
+}

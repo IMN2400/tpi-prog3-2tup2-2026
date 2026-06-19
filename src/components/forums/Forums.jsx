@@ -1,6 +1,8 @@
 import ForumDisplay from "../forumDisplay/ForumDisplay";
 
+//recibe los foros por props
 const Forums = ({ forumsProp = [] }) => {
+  // si llega algo que no es un array usa un array vacio
   const forums = Array.isArray(forumsProp) ? forumsProp : [];
 
   if (forums.length === 0) {

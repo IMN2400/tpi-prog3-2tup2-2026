@@ -1,20 +1,23 @@
 import { Navbar, Container, Nav, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
 import "./NavBar.css";
 
 const NavBar = () => {
   const navigate = useNavigate();
 
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+  // traigo del conxtexo el usuario, si esta loggeado, y la funcion para cerrar sesion
+  const { user, isAuthenticated, logout, isAdmin } = useAuth();
 
+
+  //funcion para cerrar sesion con el boton
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // la funcion logout viene del contexto y borra el usuario y el token del localStorage y limpia los estados
+    logout();
     navigate("/login");
   };
 
-  return (
+ return (
     <Navbar expand="lg" className="app-navbar">
       <Container fluid className="app-navbar-container">
         <Navbar.Brand as={Link} to="/main" className="app-navbar-brand">
@@ -32,33 +35,34 @@ const NavBar = () => {
               Foros
             </Nav.Link>
 
-            <Nav.Link
-              as={Link}
-              to="/404NotFound"
-              className="app-navbar-link app-navbar-link-active"
-            >
-              Debug
-            </Nav.Link>
+            {isAuthenticated && isAdmin && (
+              <Nav.Link as={Link} to="/bans" className="app-navbar-link">
+                Baneos
+              </Nav.Link>
+            )}
           </Nav>
 
           <Nav className="app-navbar-user">
-            {token ? (
+            {isAuthenticated ? (
               <>
                 <span className="app-navbar-username">
                   {user?.nombre || "Usuario"}
                 </span>
 
-                <Button
-                  className="app-navbar-logout"
-                  onClick={handleLogout}
-                >
+                <Button className="app-navbar-logout" onClick={handleLogout}>
                   Cerrar sesión
                 </Button>
               </>
             ) : (
-              <Nav.Link as={Link} to="/login" className="app-navbar-link">
-                Inicio de Sesión
-              </Nav.Link>
+              <>
+                <Nav.Link as={Link} to="/login" className="app-navbar-link">
+                  Iniciar sesión
+                </Nav.Link>
+
+                <Nav.Link as={Link} to="/register" className="app-navbar-link">
+                  Registrarse
+                </Nav.Link>
+              </>
             )}
           </Nav>
         </Navbar.Collapse>
