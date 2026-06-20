@@ -1,49 +1,9 @@
 import { Person } from "./Person.js";
 import { Forum } from "./Forum.js";
+import { Post } from "./Post.js";
+import { Comment } from "./Comment.js";
 
-// import { sequelize } from "../db.js";
-// import { DataTypes } from "sequelize";
-// import { PostModel } from "./Post.js";
-// import { CommentModel } from "./Comment.js";
-// import { UserModel } from "./User.js";
-
-// const Post = PostModel(sequelize, DataTypes);
-// const Comment = CommentModel(sequelize, DataTypes);
-// const User = UserModel(sequelize, DataTypes);
-
-// User.hasMany(Post, {
-//   foreignKey: "userId",
-// });
-
-// Post.belongsTo(User, {
-//   foreignKey: "userId",
-// });
-
-// Post.hasMany(Comment, {
-//   foreignKey: "postId",
-// });
-
-// Comment.belongsTo(Post, {
-//   foreignKey: "postId",
-// });
-
-// User.hasMany(Comment, {
-//   foreignKey: "userId",
-// });
-
-// Comment.belongsTo(User, {
-//   foreignKey: "userId",
-// });
-
-// const models = {
-//   User,
-//   Post,
-//   Comment,
-// };
-
-// export default models;
-
-// Relaciones activas del backend actual
+// Relaciones Person - Forum
 Person.hasMany(Forum, {
   foreignKey: "fundadorId",
 });
@@ -52,4 +12,47 @@ Forum.belongsTo(Person, {
   foreignKey: "fundadorId",
 });
 
-export { Person, Forum };
+// Relaciones Person - Post
+Person.hasMany(Post, {
+  foreignKey: "userId",
+});
+
+Post.belongsTo(Person, {
+  foreignKey: "userId",
+});
+
+// Relaciones Post - Comment
+Post.hasMany(Comment, {
+  foreignKey: "postId",
+});
+
+Comment.belongsTo(Post, {
+  foreignKey: "postId",
+});
+
+// Relaciones Person - Comment
+Person.hasMany(Comment, {
+  foreignKey: "userId",
+});
+
+Comment.belongsTo(Person, {
+  foreignKey: "userId",
+});
+
+Forum.hasMany(Post, {
+  foreignKey: "forumId",
+});
+
+Post.belongsTo(Forum, {
+  foreignKey: "forumId",
+});
+
+const models = {
+  Person,
+  Forum,
+  Post,
+  Comment
+};
+
+export { Person, Forum, Post, Comment};
+export default models;

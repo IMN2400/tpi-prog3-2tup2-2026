@@ -1,16 +1,14 @@
-import { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { AuthenticationContext } from "../../services/auth/auth.context";
-//import { isTokenValid } from "../../services/auth/auth.helpers";
+import { useAuth } from "../../context/AuthContext";
 
 const Protected = () => {
-    //const { token } = useContext(AuthenticationContext);
+  const { isAuthenticated } = useAuth();
 
-    //if (!token(token)) {
-        //return <Navigate to="/login" replace />;
-   // }
+   if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-    return <Outlet />;
+  return <Outlet />;
 };
 
 export default Protected;

@@ -106,6 +106,49 @@ export const updatePerson = async (req, res) => {
   }
 };
 
+export const makeAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const person = await Person.findByPk(id);
+
+    if (!person) {
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
+    }
+
+    if (person.rol === "SYSADMIN") {
+      return res.status(400).json({
+        message: "No se puede modificar el rol de un SYSADMIN",
+      });
+    }
+
+    if (person.rol === "ADMIN") {
+      return res.json({
+        message: "El usuario ya es ADMIN",
+      });
+    }
+
+    await person.update({
+      rol: "ADMIN",
+    });
+
+    const personResponse = person.toJSON();
+    delete personResponse.password;
+
+    res.json({
+      message: "Usuario convertido en ADMIN correctamente",
+      person: personResponse,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al convertir usuario en ADMIN",
+      error: error.message,
+    });
+  }
+};
+
 export const deletePerson = async (req, res) => {
   try {
     const { id } = req.params;

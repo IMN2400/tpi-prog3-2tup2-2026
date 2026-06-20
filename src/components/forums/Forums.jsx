@@ -1,15 +1,25 @@
-import { useState } from "react"
-import { Card } from "react-bootstrap"
-import ForumDisplay from "../forumDisplay/ForumDisplay"
+import ForumDisplay from "../forumDisplay/ForumDisplay";
 
-const Forums = ({forumsProp}) => {
-    const [forums, setForums] = useState(forumsProp)
-    
-    return <section className="display-flex">
-    {forums.map((forum)=> {ForumDisplay(forum)} )}
+//recibe los foros por props
+const Forums = ({ forumsProp = [] }) => {
+  // si llega algo que no es un array usa un array vacio
+  const forums = Array.isArray(forumsProp) ? forumsProp : [];
+
+  if (forums.length === 0) {
+    return (
+      <div className="forums-page-empty">
+        <p>No se encontraron foros.</p>
+      </div>
+    );
+  }
+
+  return (
+    <section className="forums-page-grid">
+      {forums.map((forum) => (
+        <ForumDisplay key={forum.id} forum={forum} />
+      ))}
     </section>
-}
+  );
+};
 
-
-
-export default Forums 
+export default Forums;

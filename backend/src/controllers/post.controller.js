@@ -60,29 +60,40 @@ export const getPostByForum = async (req, res) => {
     }
 }
 export const createPost = async (req, res) => {
-    try {
+  try {
+    const { title, body } = req.body;
+    const { forumId } = req.params;
+    const userId = req.user.id;
 
-        const {
-            title,
-            body,
-            personId,
-            status
-        } = req.body 
-        const post = await models.Post.create({
-            title, 
-            body,
-            personId,
-            status
-        })
-
-        res.status(201).json(post)
-    } 
-
-    catch (error) {
-        message: "Error al crear post"
-        res.status(500).json({error: error.message})
+    if (!title || !body) {
+      return res.status(400).json({
+        message: "El título y el contenido son obligatorios",
+      });
     }
-}
+
+    const forum = await models.Forum.findByPk(forumId);
+
+    if (!forum) {
+      return res.status(404).json({
+        message: "El foro no existe",
+      });
+    }
+
+    const post = await models.Post.create({
+      title,
+      body,
+      userId,
+      forumId,
+    });
+
+    res.status(201).json(post);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al crear post",
+      error: error.message,
+    });
+  }
+};
 
 export const updatePost = async (req, res) => {
     try {

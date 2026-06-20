@@ -1,28 +1,78 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
+import "./LogIn.css";
+import { useAuth } from "../../context/AuthContext";
 
 const LogIn = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({
     correo: "",
     password: "",
   });
 
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({
+    correo: "",
+    password: "",
+  });
+
+  const [errorGeneral, setErrorGeneral] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const validateForm = () => {
+    const newErrors = {
+      correo: "",
+      password: "",
+    };
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!form.correo.trim()) {
+      newErrors.correo = "El correo electrónico es obligatorio";
+    } else if (!emailRegex.test(form.correo)) {
+      newErrors.correo = "Ingrese un correo electrónico válido";
+    }
+
+    if (!form.password.trim()) {
+      newErrors.password = "La contraseña es obligatoria";
+    } else if (form.password.length < 6) {
+      newErrors.password = "La contraseña debe tener al menos 6 caracteres";
+    }
+
+    setErrors(newErrors);
+
+    return !newErrors.correo && !newErrors.password;
+  };
+
   const handleChange = (event) => {
+    const { name, value } = event.target;
+
     setForm({
       ...form,
-      [event.target.name]: event.target.value,
+      [name]: value,
     });
+
+    setErrors({
+      ...errors,
+      [name]: "",
+    });
+
+    setErrorGeneral("");
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError("");
+
+    setErrorGeneral("");
+
+    const isValid = validateForm();
+
+    if (!isValid) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -40,79 +90,131 @@ const LogIn = () => {
         throw new Error(data.message || "Error al iniciar sesión");
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      login(data.user, data.token);
 
-      navigate("/main");
+      navigate("/");
     } catch (error) {
-      setError(error.message);
+      setErrorGeneral(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <Container className="py-5">
-      <Row className="justify-content-center">
-        <Col xs={12} md={8} lg={5}>
-          <Card className="shadow border-0">
-            <Card.Body className="p-4">
-              <div className="text-center mb-4">
-                <h2>Iniciar sesión</h2>
-                <p className="text-muted">
-                  Entrá y participá en el Gran Foro TUP
-                </p>
-              </div>
+return (
+  <main className="login-page">
+    <Container>
+      <Row className="login-row align-items-center justify-content-center">
+        <Col xs={12} md={10} lg={9} xl={8}>
+          <Card className="login-card">
+            <Row className="g-0">
+              <Col md={5} className="login-info-panel">
+                <div className="login-info-content">
+                  <div className="login-info-badge">Foro TUP</div>
 
-              {error && <Alert variant="danger">{error}</Alert>}
+                  <h1>Bienvenido de nuevo</h1>
 
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Correo electrónico</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="correo"
-                    placeholder="ejemplo@mail.com"
-                    value={form.correo}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                  <p>
+                    Ingresá a tu cuenta para participar en foros, crear publicaciones
+                    y continuar conectado con la comunidad.
+                  </p>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Contraseña</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    placeholder="Ingresá tu contraseña"
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
+                  <div className="login-info-features">
+                    <div>
+                      <span>✓</span>
+                      Participá en discusiones
+                    </div>
+                    <div>
+                      <span>✓</span>
+                      Creá y respondé posts
+                    </div>
+                    <div>
+                      <span>✓</span>
+                      Gestioná tu perfil
+                    </div>
+                  </div>
+                </div>
+              </Col>
 
-                <Button
-                  type="submit"
-                  variant="success"
-                  className="w-100"
-                  disabled={loading}
-                >
-                  {loading ? "Ingresando..." : "Iniciar sesión"}
-                </Button>
-              </Form>
+              <Col xs={12} md={7}>
+                <Card.Body className="login-card-body">
+                  <div className="login-header">
+                    <div className="login-badge">Acceso</div>
 
-              <div className="text-center mt-3">
-                <small className="text-muted">
-                  ¿No tenés cuenta?{" "}
-                  <Link to="/register">Registrate</Link>
-                </small>
-              </div>
-            </Card.Body>
+                    <h2 className="login-title">Iniciar sesión</h2>
+
+                    <p className="login-subtitle">
+                      Ingresá tus datos para acceder al sistema
+                    </p>
+                  </div>
+
+                  {errorGeneral && (
+                    <Alert variant="danger" className="login-alert">
+                      {errorGeneral}
+                    </Alert>
+                  )}
+
+                  <Form onSubmit={handleSubmit} noValidate>
+                 <Form.Group className="mb-3" controlId="correo">
+                    <Form.Label className="login-label">
+                      Correo electrónico
+                    </Form.Label>
+
+                    <Form.Control
+                      className="login-input"
+                      type="text"
+                      name="correo"
+                      placeholder="Ingrese su correo electrónico"
+                      value={form.correo}
+                      onChange={handleChange}
+                      isInvalid={!!errors.correo}
+                    />
+
+                    <Form.Control.Feedback type="invalid" className="login-error">
+                      {errors.correo}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+
+                  <Form.Group className="mb-4" controlId="password">
+                    <Form.Label className="login-label">
+                      Contraseña
+                    </Form.Label>
+
+                    <Form.Control
+                      className="login-input"
+                      type="password"
+                      name="password"
+                      placeholder="Ingrese su contraseña"
+                      value={form.password}
+                      onChange={handleChange}
+                      isInvalid={!!errors.password}
+                    />
+
+                    <Form.Control.Feedback type="invalid" className="login-error">
+                      {errors.password}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+
+                    <Button
+                      type="submit"
+                      className="login-button"
+                      disabled={loading}
+                    >
+                      {loading ? "Ingresando..." : "Ingresar"}
+                    </Button>
+                  </Form>
+
+                  <div className="login-footer">
+                    <span>¿No tenés cuenta?</span>{" "}
+                    <Link to="/register">Registrate</Link>
+                  </div>
+                </Card.Body>
+              </Col>
+            </Row>
           </Card>
         </Col>
       </Row>
     </Container>
-  );
+  </main>
+);
 };
-
 export default LogIn;

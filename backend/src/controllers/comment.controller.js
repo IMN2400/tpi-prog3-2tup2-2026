@@ -2,7 +2,7 @@ import models from "../models/index.js"
 
 export const getAllComments = async (req, res) => {
     try {
-        const comments = await models.comments.findAll({
+        const comments = await models.Comment.findAll({
             include:[
                 models.Person,
                 models.Post
@@ -55,19 +55,23 @@ export const getCommentsByPost = async (req, res) =>{
     }
 }
 
-export const createCommet = async (req, res) => {
+export const createComment = async (req, res) => {
     try {
-        const {
-            text,
-            personId,
-            postId,
-        } = req.body
+        const { text } = req.body;
+        const { postId } = req.params;
+        const userId = req.user.id;
 
-        const comment = await models.Comment.create({
-            text,
-            personId,
-            postId
-        })
+    if (!text || text.trim() === "") {
+      return res.status(400).json({
+        message: "El comentario no puede estar vacío"
+      });
+    }
+
+    const comment = await models.Comment.create({
+      text,
+      userId,
+      postId
+    });
         res.status(201).json(comment)
     }
     catch(error) {
@@ -76,11 +80,11 @@ export const createCommet = async (req, res) => {
     }
 }
 
-export const updateCommet = async (req, res) => {
+export const updateComment = async (req, res) => {
     try{
         const {
             text
-        } = req.boy
+        } = req.body
         const comment = await models.Comment.findByPk(req.params.id)
 
         if (!comment) {
@@ -120,21 +124,25 @@ export const deleteComment = async (req, res) => {
     }
 }
 
-export const likesPost = async (req, res) => {
-    try {
-        const comment = await models.Comment.findByPk(req.params.id)
+export const likeComment = async (req, res) => {
+  try {
+    const comment = await models.Comment.findByPk(req.params.id);
 
-        if (!comment){
-            return res.status(404).json ({
-                error: "No puso encontrar el comentario"
-            })
-        }
-        post.likeCount += 1
-        await commnet.save()
-        res.json(post)
+    if (!comment) {
+      return res.status(404).json({
+        error: "No se pudo encontrar el comentario"
+      });
     }
-    catch (error) {
-        message: "Error al likear post"
-        res.status(500).json({error: error.message})
-    }
-}
+
+    comment.likeCount += 1;
+
+    await comment.save();
+
+    res.json(comment);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al likear comentario",
+      error: error.message
+    });
+  }
+};
