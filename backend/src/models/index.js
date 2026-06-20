@@ -2,6 +2,7 @@ import { Person } from "./Person.js";
 import { Forum } from "./Forum.js";
 import { Post } from "./Post.js";
 import { Comment } from "./Comment.js";
+import { PostLike } from "./PostLike.js";
 
 // Relaciones Person - Forum
 Person.hasMany(Forum, {
@@ -19,6 +20,24 @@ Person.hasMany(Post, {
 
 Post.belongsTo(Person, {
   foreignKey: "userId",
+});
+
+// Relaciones Person - PostLike
+Person.hasMany(PostLike, {
+  foreignKey: "userId",
+});
+
+PostLike.belongsTo(Person, {
+  foreignKey: "userId",
+});
+
+// Relaciones Post - PostLike
+Post.hasMany(PostLike, {
+  foreignKey: "postId",
+});
+
+PostLike.belongsTo(Post, {
+  foreignKey: "postId",
 });
 
 // Relaciones Post - Comment
@@ -51,8 +70,9 @@ const models = {
   Person,
   Forum,
   Post,
-  Comment
+  Comment,
+  PostLike,
 };
 
-export { Person, Forum, Post, Comment};
+export { Person, Forum, Post, Comment, PostLike};
 export default models;

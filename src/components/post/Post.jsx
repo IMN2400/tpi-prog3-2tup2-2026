@@ -18,6 +18,7 @@ const Post = ({ postId }) => {
 
   const [loading, setLoading] = useState(true);
   const [commentLoading, setCommentLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   const [error, setError] = useState("");
   const [commentError, setCommentError] = useState("");
@@ -115,42 +116,55 @@ const Post = ({ postId }) => {
   };
 
   const loadData = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  try {
+    setLoading(true);
+    setError("");
 
-      const postResponse = await fetch(`${API_URL}/posts/${postId}`);
+    const postResponse = await fetch(`${API_URL}/posts/${postId}`);
+    const postData = await postResponse.json();
 
-      if (!postResponse.ok) {
-        throw new Error("No se pudo cargar la publicación");
-      }
-
-      const postData = await postResponse.json();
-
-      setPost(postData);
-      setLikedByMe(postData.likedByMe || postData.userLiked || false);
-
-      const commentsResponse = await fetch(
-        `${API_URL}/posts/${postId}/comments`
-      );
-
-      if (!commentsResponse.ok) {
-        throw new Error("No se pudieron cargar los comentarios");
-      }
-
-      const commentsData = await commentsResponse.json();
-
-      setComments(Array.isArray(commentsData) ? commentsData : []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (!postResponse.ok) {
+      throw new Error(postData.message || "No se pudo cargar el post");
     }
-  };
+
+    setPost(postData);
+
+    const commentsResponse = await fetch(`${API_URL}/posts/${postId}/comments`);
+    const commentsData = await commentsResponse.json();
+
+    if (!commentsResponse.ok) {
+      throw new Error(
+        commentsData.message || "No se pudieron cargar los comentarios"
+      );
+    }
+
+    setComments(commentsData);
+
+    if (token) {
+      const myLikeResponse = await fetch(`${API_URL}/posts/${postId}/my-like`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const myLikeData = await myLikeResponse.json();
+
+      if (myLikeResponse.ok) {
+        setLikedByMe(myLikeData.likedByMe);
+      }
+    } else {
+      setLikedByMe(false);
+    }
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
-    loadData();
-  }, [postId]);
+  loadData();
+}, [postId, token]);
 
   const formatDate = (date) => {
     if (!date) {
@@ -280,58 +294,43 @@ const Post = ({ postId }) => {
   }, [comments, search, sortBy]);
 
   const handleLikePost = () => {
-    requireAuth(async () => {
-      const previousLiked = likedByMe;
-      const previousLikeCount = post.likeCount || 0;
+  requireAuth(async () => {
+    if (likeLoading) {
+      return;
+    }
 
-      const nextLiked = !previousLiked;
-      const nextLikeCount = nextLiked
-        ? previousLikeCount + 1
-        : Math.max(previousLikeCount - 1, 0);
+    try {
+      setLikeLoading(true);
+      setError("");
 
-      setLikedByMe(nextLiked);
+      const response = await fetch(`${API_URL}/posts/${postId}/like`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "No se pudo actualizar el like de la publicación"
+        );
+      }
+
+      setLikedByMe(data.likedByMe);
 
       setPost((prevPost) => ({
         ...prevPost,
-        likeCount: nextLikeCount,
+        likeCount: data.likeCount,
       }));
-
-      try {
-        setError("");
-
-        const response = await fetch(`${API_URL}/posts/${postId}/like`, {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.message || "No se pudo actualizar el like de la publicación"
-          );
-        }
-
-        setPost((prevPost) => ({
-          ...prevPost,
-          likeCount: data.likeCount ?? nextLikeCount,
-        }));
-
-        setLikedByMe(data.likedByMe ?? data.userLiked ?? nextLiked);
-      } catch (err) {
-        setLikedByMe(previousLiked);
-
-        setPost((prevPost) => ({
-          ...prevPost,
-          likeCount: previousLikeCount,
-        }));
-
-        setError(err.message);
-      }
-    });
-  };
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLikeLoading(false);
+    }
+  });
+};
 
   const handleCreateComment = (event) => {
     event.preventDefault();
@@ -572,9 +571,8 @@ const Post = ({ postId }) => {
             <button
               type="button"
               onClick={handleLikePost}
-              className={`post-like-button ${
-                likedByMe ? "post-like-active" : ""
-              }`}
+              disabled={likeLoading}
+              className={`post-like-button ${likedByMe ? "post-like-active" : ""}`}
               aria-label={likedByMe ? "Quitar me gusta" : "Dar me gusta"}
             >
               <svg
@@ -595,6 +593,7 @@ const Post = ({ postId }) => {
         </article>
 
         <section className="post-comment-entry">
+
           <Form onSubmit={handleCreateComment} noValidate>
             <div className="post-comment-input-row">
               <div className="post-comment-user-avatar">
@@ -629,6 +628,7 @@ const Post = ({ postId }) => {
               {commentLoading ? "Comentando..." : "Comentar"}
             </Button>
           </Form>
+
         </section>
 
         <section className="post-comments-toolbar">
