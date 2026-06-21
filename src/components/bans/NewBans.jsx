@@ -71,7 +71,6 @@ const NewBan = () => {
         },
         body: JSON.stringify({
           userId: Number(formData.userId),
-          adminId: Number(user?.id),
           reason: formData.reason.trim(),
           duration: Number(formData.duration),
         }),
