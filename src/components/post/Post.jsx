@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -30,8 +30,6 @@ const Post = ({ postId }) => {
   const [error, setError] = useState("");
   const [commentError, setCommentError] = useState("");
 
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("best");
   const [expandedThreads, setExpandedThreads] = useState({});
   const [likedByMe, setLikedByMe] = useState(false);
 
@@ -91,7 +89,7 @@ const Post = ({ postId }) => {
 
   const goToBanForm = (targetUser) => {
     const userId = targetUser.id;
-    const userName = targetUser.nombre || targetUser.nick || "Usuario";
+    const userName = targetUser.nombre || "Usuario";
 
     navigate(`/newban?userId=${userId}&userName=${encodeURIComponent(userName)}`);
   };
@@ -99,7 +97,9 @@ const Post = ({ postId }) => {
   const handleMakeAdmin = (targetUser) => {
     requireAuth(async () => {
       const confirmed = window.confirm(
-        `¿Querés convertir a ${targetUser.nombre || "este usuario"} en ADMIN?`
+        `¿Querés convertir a ${
+          targetUser.nombre || "este usuario"
+        } en ADMIN?`
       );
 
       if (!confirmed) {
@@ -262,57 +262,7 @@ const Post = ({ postId }) => {
     return roots;
   };
 
-  const sortCommentsRecursive = (nodes) => {
-    const sorted = [...nodes].sort((a, b) => {
-      if (sortBy === "recent") {
-        return (
-          new Date(b.postDate || b.createdAt || 0) -
-          new Date(a.postDate || a.createdAt || 0)
-        );
-      }
-
-      return (b.likeCount || 0) - (a.likeCount || 0);
-    });
-
-    return sorted.map((node) => ({
-      ...node,
-      children: sortCommentsRecursive(node.children || []),
-    }));
-  };
-
-  const filterTree = (nodes, term) => {
-    if (!term.trim()) {
-      return nodes;
-    }
-
-    const searchLower = term.toLowerCase();
-
-    return nodes
-      .map((node) => {
-        const ownMatch =
-          node.text?.toLowerCase().includes(searchLower) ||
-          node.Person?.nombre?.toLowerCase().includes(searchLower);
-
-        const children = filterTree(node.children || [], term);
-
-        if (ownMatch || children.length > 0) {
-          return {
-            ...node,
-            children,
-          };
-        }
-
-        return null;
-      })
-      .filter(Boolean);
-  };
-
-  const commentTree = useMemo(() => {
-    const tree = buildCommentTree(comments);
-    const sorted = sortCommentsRecursive(tree);
-
-    return filterTree(sorted, search);
-  }, [comments, search, sortBy]);
+  const commentTree = buildCommentTree(comments);
 
   const handleLikePost = () => {
     requireAuth(async () => {
@@ -800,7 +750,7 @@ const Post = ({ postId }) => {
           <Form onSubmit={handleCreateComment} noValidate>
             <div className="post-comment-input-row">
               <div className="post-comment-user-avatar">
-                {getInitial(user?.nombre || user?.nick || "U")}
+                {getInitial(user?.nombre || "U")}
               </div>
 
               <Form.Control
@@ -831,30 +781,6 @@ const Post = ({ postId }) => {
               {commentLoading ? "Comentando..." : "Comentar"}
             </Button>
           </Form>
-        </section>
-
-        <section className="post-comments-toolbar">
-          <div className="post-comments-sort">
-            <span>Ordenar por:</span>
-
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-              className="post-comments-select"
-            >
-              <option value="best">Mejores</option>
-              <option value="recent">Más recientes</option>
-            </select>
-          </div>
-
-          <div className="post-comments-search">
-            <input
-              type="text"
-              placeholder="Buscar comentarios"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </div>
         </section>
 
         <section className="post-comments-thread">
