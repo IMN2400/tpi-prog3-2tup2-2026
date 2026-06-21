@@ -536,7 +536,7 @@ const Post = ({ postId }) => {
             <p className="thread-comment-text">{comment.text}</p>
 
             <div className="thread-comment-actions">
-              <button type="button">↑ {comment.likeCount || 0}</button>
+              <button type="button" hidden>↑ {comment.likeCount || 0}</button>
 
               <button
                 type="button"
