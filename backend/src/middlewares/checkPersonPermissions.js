@@ -44,7 +44,7 @@ export const canManagePersons = async (req, res, next) => {
       }
 
       // USER no puede cambiar su rol
-      if (req.body.rol !== undefined) {
+      if (req.body?.rol !== undefined) {
         return res.status(403).json({
           message: "No podés modificar tu rol",
         });
@@ -57,6 +57,7 @@ export const canManagePersons = async (req, res, next) => {
       message: "No tenés permisos",
     });
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       message: "Error al verificar permisos de usuario",
       error: error.message,
