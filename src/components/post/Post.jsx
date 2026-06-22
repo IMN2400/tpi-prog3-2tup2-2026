@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import "./Post.css";
+import { formatBodyText } from "../../services/imgUtils/imgUtils";
 
 const API_URL = "http://localhost:3000";
 
@@ -533,7 +534,8 @@ const Post = ({ postId }) => {
               )}
             </div>
 
-            <p className="thread-comment-text">{comment.text}</p>
+            <p className="thread-comment-text" dangerouslySetInnerHTML={{ __html: formatBodyText(comment.text) }} 
+/>
 
             <div className="thread-comment-actions">
               <button type="button" hidden>↑ {comment.likeCount || 0}</button>
@@ -717,7 +719,8 @@ const Post = ({ postId }) => {
 
           <h1 className="post-main-title">{post.title}</h1>
 
-          <p className="post-main-description">{post.body}</p>
+          <p className="post-main-description" dangerouslySetInnerHTML={{ __html: formatBodyText(post.body) }} 
+/>
 
           <div className="post-main-actions">
             <button
