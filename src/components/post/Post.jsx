@@ -35,6 +35,10 @@ const Post = ({ postId }) => {
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [deleteCommentError, setDeleteCommentError] = useState("");
 
+  const [deletePostModal, setDeletePostModal] = useState(false);
+  const [deletePostLoading, setDeletePostLoading] = useState(false);
+  const [deletePostError, setDeletePostError] = useState("");
+
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editCommentText, setEditCommentText] = useState("");
   const [editCommentLoading, setEditCommentLoading] = useState(false);
@@ -88,6 +92,18 @@ const Post = ({ postId }) => {
 
   const canDeleteComments = () => {
     return isAdmin || isSysAdmin;
+  };
+
+  const canDeletePost = () => {
+    if (isSysAdmin) {
+      return true;
+    }
+
+    if (isAdmin && post?.Person?.rol !== "SYSADMIN") {
+      return true;
+    }
+
+    return false;
   };
 
   const canEditPost = () => {
@@ -365,6 +381,70 @@ const Post = ({ postId }) => {
         setEditPostLoading(false);
       }
     });
+  };
+
+  const handleOpenDeletePostModal = () => {
+    requireAuth(() => {
+      if (!canDeletePost()) {
+        setError("No tenés permisos para borrar este post");
+        return;
+      }
+
+      setDeletePostModal(true);
+      setDeletePostError("");
+
+      setEditingPost(false);
+      setEditPostTitle("");
+      setEditPostBody("");
+      setEditPostError("");
+      setEditingCommentId(null);
+      setEditCommentText("");
+      setEditCommentError("");
+      setReplyingToId(null);
+      setReplyText("");
+      setReplyError("");
+    });
+  };
+
+  const handleCloseDeletePostModal = () => {
+    if (deletePostLoading) {
+      return;
+    }
+
+    setDeletePostModal(false);
+    setDeletePostError("");
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      setDeletePostLoading(true);
+      setDeletePostError("");
+
+      const response = await fetch(`${API_URL}/posts/${postId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "No se pudo borrar el post");
+      }
+
+      setDeletePostModal(false);
+
+      if (forumId) {
+        navigate(`/forum/${forumId}`);
+      } else {
+        navigate("/foros");
+      }
+    } catch (err) {
+      setDeletePostError(err.message);
+    } finally {
+      setDeletePostLoading(false);
+    }
   };
 
   const handleLikePost = () => {
@@ -1054,6 +1134,17 @@ const Post = ({ postId }) => {
                 Editar post
               </Button>
             )}
+
+            {canDeletePost() && (
+              <Button
+                type="button"
+                variant="outline-danger"
+                size="sm"
+                onClick={handleOpenDeletePostModal}
+              >
+                Eliminar post
+              </Button>
+            )}
           </div>
         </article>
 
@@ -1104,6 +1195,46 @@ const Post = ({ postId }) => {
             commentTree.map((comment) => renderCommentNode(comment))
           )}
         </section>
+
+        <Modal
+          show={deletePostModal}
+          onHide={handleCloseDeletePostModal}
+          centered
+        >
+          <Modal.Header closeButton={!deletePostLoading}>
+            <Modal.Title>Borrar post</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <p className="mb-2">
+              ¿Estás seguro que deseás borrar este post?
+            </p>
+
+            {deletePostError && (
+              <Alert variant="danger" className="mt-3 mb-0">
+                {deletePostError}
+              </Alert>
+            )}
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={handleCloseDeletePostModal}
+              disabled={deletePostLoading}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              variant="danger"
+              onClick={handleDeletePost}
+              disabled={deletePostLoading}
+            >
+              {deletePostLoading ? "Borrando..." : "Borrar"}
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
         <Modal
           show={!!commentToDelete}

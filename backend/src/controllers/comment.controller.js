@@ -2,47 +2,60 @@ import models from "../models/index.js"
 import { Op } from "sequelize";
 
 export const getAllComments = async (req, res) => {
-    try {
-        const comments = await models.Comment.findAll({
-            include:[
-                models.Person,
-                models.Post
-            ]
-        })
-        res.json(comments)
-    }
-    catch(error) {
-        message: "Error al buscar comentario"
-        res.status(500).json({error: error.message})
-    }
-}
+  try {
+    const comments = await models.Comment.findAll({
+      where: {
+        status: true,
+      },
+      include: [
+        models.Person,
+        models.Post,
+      ],
+    });
+
+    res.json(comments);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al buscar comentario",
+      error: error.message,
+    });
+  }
+};
 
 export const getCommentById = async (req, res) => {
-    try {
-        const comment = await models.Comment.findByPk(req.params.id, {
-            include:[
-                models.Person,
-                models.Post
-            ]
-        })
-        if (!comment) {
-            return res.status(404).json({
-                error: "No se pudo encontrar el comentario"
-            })
-        }
-        res.json(comment)
+  try {
+    const comment = await models.Comment.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
+      include: [
+        models.Person,
+        models.Post,
+      ],
+    });
+
+    if (!comment) {
+      return res.status(404).json({
+        error: "No se pudo encontrar el comentario",
+      });
     }
-    catch(error) {
-        message: "Error al buscar comentario"
-        res.status(500).json({error: error.message})
-    }
-}
+
+    res.json(comment);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al buscar comentario",
+      error: error.message,
+    });
+  }
+};
 
 export const getCommentsByPost = async (req, res) => {
   try {
     const comments = await models.Comment.findAll({
       where: {
         postId: req.params.postId,
+        status: true,
       },
       include: [
         models.Person,
@@ -180,7 +193,12 @@ export const deleteComment = async (req, res) => {
       });
     }
 
-    const comment = await models.Comment.findByPk(req.params.id);
+    const comment = await models.Comment.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
+    });
 
     if (!comment) {
       return res.status(404).json({
@@ -192,40 +210,44 @@ export const deleteComment = async (req, res) => {
     const idsToDelete = [...nestedCommentIds, comment.id];
 
     const commentsToDelete = await models.Comment.findAll({
-  where: {
-    id: {
-      [Op.in]: idsToDelete,
-      },
-    },
-    include: [models.Person],
-  });
-
-  const hasSysAdminComment = commentsToDelete.some(
-    (comment) => comment.Person?.rol === "SYSADMIN"
-  );
-
-  if (loggedUser.rol === "ADMIN" && hasSysAdminComment) {
-    return res.status(403).json({
-      message:
-        "No tienes permisos",
-    });
-  }
-
-    for (const commentId of idsToDelete) {
-      await models.Comment.destroy({
-        where: {
-          id: commentId,
+      where: {
+        id: {
+          [Op.in]: idsToDelete,
         },
+      },
+      include: [models.Person],
+    });
+
+    const hasSysAdminComment = commentsToDelete.some(
+      (comment) => comment.Person?.rol === "SYSADMIN"
+    );
+
+    if (loggedUser.rol === "ADMIN" && hasSysAdminComment) {
+      return res.status(403).json({
+        message: "No tienes permisos",
       });
     }
 
+    await models.Comment.update(
+      {
+        status: false,
+      },
+      {
+        where: {
+          id: {
+            [Op.in]: idsToDelete,
+          },
+        },
+      }
+    );
+
     res.json({
-      message: "Comentario eliminado correctamente",
+      message: "Comentario dado de baja correctamente",
       deletedComments: idsToDelete.length,
     });
   } catch (error) {
     res.status(500).json({
-      message: "Error al eliminar comentario",
+      message: "Error al dar de baja el comentario",
       error: error.message,
     });
   }
