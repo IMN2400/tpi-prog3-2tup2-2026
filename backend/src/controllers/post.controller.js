@@ -22,43 +22,56 @@ export const getPosts = async (req, res) => {
 }
 
 export const getPostById = async (req, res) => {
-    try {
-        const post = await models.Post.findByPk(req.params.id, {
-            include: [
-                models.Person,
-                models.Comment
-            ]
-        })
+  try {
+    const post = await models.Post.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
+      include: [
+        models.Person,
+        models.Comment,
+        models.Forum,
+      ],
+    });
 
-        if (!post) {
-            return res.status(404).json({error: "No se ha encontrado el post"})
-        }
-        res.json(post)
+    if (!post) {
+      return res.status(404).json({
+        message: "No se ha encontrado el post",
+      });
+    }
 
-    }
-    catch (error) {
-        message: "Error al buscar post"
-        res.status(500).json({error: error.message})
-    }
-}
+    res.json(post);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al buscar post",
+      error: error.message,
+    });
+  }
+};
+
 export const getPostByForum = async (req, res) => {
-    try {
-        const post = await models.Post.findAll({
-            where: {
-                forumId: req.params.forumId
-            },
-            include: [
-                models.Person,
-                models.Comment
-            ]
-        })
-        res.json(post)
-    }
-    catch (error) {
-        message: "Error al buscar post"
-        res.status(500).json({error: error.message})
-    }
-}
+  try {
+    const post = await models.Post.findAll({
+      where: {
+        forumId: req.params.forumId,
+        status: true,
+      },
+      include: [
+        models.Person,
+        models.Comment,
+      ],
+    });
+
+    res.json(post);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al buscar post",
+      error: error.message,
+    });
+  }
+};
+
 export const createPost = async (req, res) => {
   try {
     const { title, body } = req.body;
@@ -96,50 +109,84 @@ export const createPost = async (req, res) => {
 };
 
 export const updatePost = async (req, res) => {
-    try {
-        const {
-            title,
-            body, 
-            status,
-        } = req.body 
-        const post = await models.Post.findByPk(req.params.id)
+  try {
+    const { title, body } = req.body;
 
-        if (!post) {
-            return res.status(404).json({error:"No se ha encontrado el post"})
-        }
-        await post.update({
-            title,
-            body,
-            status
-        })
-        res.json(post)
+    const post = await models.Post.findByPk(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        message: "No se ha encontrado el post",
+      });
     }
-    catch (error) {
-        message: "Error al actualizar post"
-        res.status(500).json({error: error.message})
+
+    if (Number(post.userId) !== Number(req.user.id)) {
+      return res.status(403).json({
+        message: "Solo el autor puede editar este post",
+      });
     }
-}
+
+    if (!title || title.trim() === "") {
+      return res.status(400).json({
+        message: "El título no puede estar vacío",
+      });
+    }
+
+    if (!body || body.trim() === "") {
+      return res.status(400).json({
+        message: "El contenido no puede estar vacío",
+      });
+    }
+
+    await post.update({
+      title: title.trim(),
+      body: body.trim(),
+    });
+
+    res.json({
+      message: "Post actualizado correctamente",
+      post,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al actualizar post",
+      error: error.message,
+    });
+  }
+};
 
 export const deletearPost = async (req, res) => {
-    try {
-        const post = await models.Post.findByPk(req.params.id)
+  try {
+    const post = await models.Post.findByPk(req.params.id, {
+      include: [models.Person],
+    });
 
-        if (!post){
-            return res.status(404).json({error: "No se ha encontrado el post"})
-        }
-
-        await post.destroy()
-
-        res.json({
-            message:"Post eliminado"
-        })
+    if (!post || !post.status) {
+      return res.status(404).json({
+        message: "No se ha encontrado el post",
+      });
     }
 
-    catch (error) {
-        message: "Error al eliminar post"
-        res.status(500).json({error: error.message})
+    if (req.user.rol === "ADMIN" && post.Person?.rol === "SYSADMIN") {
+      return res.status(403).json({
+        message: "No tenés permisos",
+      });
     }
-}
+
+    await post.update({
+      status: false,
+    });
+
+    res.json({
+      message: "Post dado de baja correctamente",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al dar de baja el post",
+      error: error.message,
+    });
+  }
+};
 
 export const likesPost = async (req, res) => {
     try {

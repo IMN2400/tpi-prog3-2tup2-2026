@@ -11,7 +11,7 @@ import {
   validateUpdateForum,
 } from "../middlewares/forum.validation.js";
 
-import { onlyAdminOrSysadmin } from "../middlewares/checkForumPermissions.js";
+import { onlyAdminOrSysadmin, onlySysadmin } from "../middlewares/checkForumPermissions.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
 
@@ -40,7 +40,7 @@ router.put(
 router.delete(
   "/forums/:id",
   verifyToken,
-  onlyAdminOrSysadmin, 
+  onlySysadmin, 
   deleteForum);
 
 export default router;

@@ -1,12 +1,21 @@
-import { Card, Button } from "react-bootstrap";
+import { Card, Button, Modal, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./forumDisplay.css";
+import { useState } from "react";
 
 //Recibe por prop un foro mapeado por forum(padre) y lo renderiza visualmente
 const ForumDisplay = ({ forum }) => {
   const navigate = useNavigate();
 
-  const { id, nombre, descripcion } = forum;
+  const { token, isSysAdmin, isAuthenticated } = useAuth();
+
+  const { id, nombre, descripcion, estado } = forum;
+
+  const [deletionModal, setDeletionModal] = useState(false);
+  const [deleteForumLoading, setDeleteForumLoading] = useState(false);
+  const [deleteForumError, setDeleteForumError] = useState("");
+  const [isForumVisible, setIsForumVisible] = useState(estado);
 
   const posts = Array.isArray(forum.Posts) ? forum.Posts : [];
   const totalPosts = posts.length;
@@ -17,6 +26,62 @@ const ForumDisplay = ({ forum }) => {
     navigate(`/forum/${id}`);
   };
 
+  // Verificación de que el usuario tenga los permisos necesarios.
+  const canDeleteForum = isSysAdmin && isAuthenticated;
+
+  // Esta función abre el modal para eliminar foros...
+  const handleOpenDeleteForumModal = () => {
+    if (!canDeleteForum) {
+      setDeleteForumError("No tenés permisos para borrar foros");
+      return;
+    }
+
+    setDeletionModal(true);
+    setDeleteForumError("");
+  };
+
+  // ...y esta lo cierra.
+  const handleCloseDeleteForumModal = () => {
+    if (deleteForumLoading) {
+      return;
+    }
+
+    setDeletionModal(false);
+    setDeleteForumError("");
+  };
+
+  // Esta función da la baja lógica del foro, que no puede darse de baja físicamente fuera del servidor. Los posts seguirán accesibles, pero solo por link directo.
+  const handleDeleteForum = async () => {
+    try {
+      setDeleteForumLoading(true);
+      setDeleteForumError("");
+
+      const response = await fetch(`http://localhost:3000/forums/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "No se pudo borrar el foro");
+      }
+
+      setDeletionModal(false);
+      setIsForumVisible(false);
+    } catch (err) {
+      setDeleteForumError(err.message);
+    } finally {
+      setDeleteForumLoading(false);
+    }
+  };
+
+  // Si el foro se dió de baja, no se renderiza.
+  if (!isForumVisible) return null;
+
+  // Return exitoso del foro.
   return (
     <Card className="single-forum-card">
       <Card.Body className="single-forum-card-body">
@@ -36,14 +101,57 @@ const ForumDisplay = ({ forum }) => {
           </div>
         </div>
 
-          <Button
-            variant="outline-success"
-            className="single-forum-card-action"
-            onClick={handleGoToForum}
-          >
-            Ir al foro
+        <Button
+          variant="outline-success"
+          className="single-forum-card-action"
+          onClick={handleGoToForum}
+        >
+          Ir al foro
+        </Button>
+
+        {/* Componente del botón de borrar foros. Solo se renderiza si el usuario tiene la autorización correcta. */}
+        {canDeleteForum && (
+          <Button variant="outline-danger" onClick={handleOpenDeleteForumModal}>
+            Eliminar foro
           </Button>
+        )}
       </Card.Body>
+
+      <Modal show={deletionModal} onHide={handleCloseDeleteForumModal} centered>
+        <Modal.Header closeButton={!deleteForumLoading}>
+          <Modal.Title>Borrar foro</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <p className="mb-2">
+            ¿Estás seguro que deseás borrar este foro?
+          </p>
+
+          {deleteForumError && (
+            <Alert variant="danger" className="mt-3 mb-0">
+              {deleteForumError}
+            </Alert>
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={handleCloseDeleteForumModal}
+            disabled={deleteForumLoading}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            variant="danger"
+            onClick={handleDeleteForum}
+            disabled={deleteForumLoading}
+          >
+            {deleteForumLoading ? "Borrando..." : "Borrar"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Card>
   );
 };

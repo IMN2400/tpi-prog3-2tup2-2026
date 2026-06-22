@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Form, Spinner } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import "./Post.css";
+import { formatBodyText } from "../../services/imgUtils/imgUtils";
 
 const API_URL = "http://localhost:3000";
 
@@ -14,16 +15,38 @@ const Post = ({ postId }) => {
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
+
+  const [editingPost, setEditingPost] = useState(false);
+  const [editPostTitle, setEditPostTitle] = useState("");
+  const [editPostBody, setEditPostBody] = useState("");
+  const [editPostLoading, setEditPostLoading] = useState(false);
+  const [editPostError, setEditPostError] = useState("");
+
   const [commentText, setCommentText] = useState("");
+  const [replyingToId, setReplyingToId] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [replyError, setReplyError] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [commentLoading, setCommentLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [deleteCommentLoading, setDeleteCommentLoading] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState(null);
+  const [deleteCommentError, setDeleteCommentError] = useState("");
+
+  const [deletePostModal, setDeletePostModal] = useState(false);
+  const [deletePostLoading, setDeletePostLoading] = useState(false);
+  const [deletePostError, setDeletePostError] = useState("");
+
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentText, setEditCommentText] = useState("");
+  const [editCommentLoading, setEditCommentLoading] = useState(false);
+  const [editCommentError, setEditCommentError] = useState("");
 
   const [error, setError] = useState("");
   const [commentError, setCommentError] = useState("");
 
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("best");
   const [expandedThreads, setExpandedThreads] = useState({});
   const [likedByMe, setLikedByMe] = useState(false);
 
@@ -67,9 +90,47 @@ const Post = ({ postId }) => {
     return true;
   };
 
+  const canDeleteComments = () => {
+    return isAdmin || isSysAdmin;
+  };
+
+  const canDeletePost = () => {
+    if (isSysAdmin) {
+      return true;
+    }
+
+    if (isAdmin && post?.Person?.rol !== "SYSADMIN") {
+      return true;
+    }
+
+    return false;
+  };
+
+  const canEditPost = () => {
+    const postAuthorId = post?.userId || post?.Person?.id;
+
+    return Number(postAuthorId) === Number(user?.id);
+  };
+
+  const canEditComment = (comment) => {
+    const commentAuthorId = comment?.userId || comment?.Person?.id;
+
+    return Number(commentAuthorId) === Number(user?.id);
+  };
+
+  const getNestedCommentCount = (comment) => {
+    if (!comment?.children?.length) {
+      return 0;
+    }
+
+    return comment.children.reduce((total, child) => {
+      return total + 1 + getNestedCommentCount(child);
+    }, 0);
+  };
+
   const goToBanForm = (targetUser) => {
     const userId = targetUser.id;
-    const userName = targetUser.nombre || targetUser.nick || "Usuario";
+    const userName = targetUser.nombre || "Usuario";
 
     navigate(`/newban?userId=${userId}&userName=${encodeURIComponent(userName)}`);
   };
@@ -77,7 +138,9 @@ const Post = ({ postId }) => {
   const handleMakeAdmin = (targetUser) => {
     requireAuth(async () => {
       const confirmed = window.confirm(
-        `¿Querés convertir a ${targetUser.nombre || "este usuario"} en ADMIN?`
+        `¿Querés convertir a ${
+          targetUser.nombre || "este usuario"
+        } en ADMIN?`
       );
 
       if (!confirmed) {
@@ -120,27 +183,40 @@ const Post = ({ postId }) => {
       setError("");
 
       const postResponse = await fetch(`${API_URL}/posts/${postId}`);
-
-      if (!postResponse.ok) {
-        throw new Error("No se pudo cargar la publicación");
-      }
-
       const postData = await postResponse.json();
 
-      setPost(postData);
-      setLikedByMe(postData.likedByMe || postData.userLiked || false);
-
-      const commentsResponse = await fetch(
-        `${API_URL}/posts/${postId}/comments`
-      );
-
-      if (!commentsResponse.ok) {
-        throw new Error("No se pudieron cargar los comentarios");
+      if (!postResponse.ok) {
+        throw new Error(postData.message || "No se pudo cargar el post");
       }
 
+      setPost(postData);
+
+      const commentsResponse = await fetch(`${API_URL}/posts/${postId}/comments`);
       const commentsData = await commentsResponse.json();
 
-      setComments(Array.isArray(commentsData) ? commentsData : []);
+      if (!commentsResponse.ok) {
+        throw new Error(
+          commentsData.message || "No se pudieron cargar los comentarios"
+        );
+      }
+
+      setComments(commentsData);
+
+      if (token) {
+        const myLikeResponse = await fetch(`${API_URL}/posts/${postId}/my-like`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const myLikeData = await myLikeResponse.json();
+
+        if (myLikeResponse.ok) {
+          setLikedByMe(myLikeData.likedByMe);
+        }
+      } else {
+        setLikedByMe(false);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -150,7 +226,7 @@ const Post = ({ postId }) => {
 
   useEffect(() => {
     loadData();
-  }, [postId]);
+  }, [postId, token]);
 
   const formatDate = (date) => {
     if (!date) {
@@ -227,76 +303,158 @@ const Post = ({ postId }) => {
     return roots;
   };
 
-  const sortCommentsRecursive = (nodes) => {
-    const sorted = [...nodes].sort((a, b) => {
-      if (sortBy === "recent") {
-        return (
-          new Date(b.postDate || b.createdAt || 0) -
-          new Date(a.postDate || a.createdAt || 0)
-        );
+  const commentTree = buildCommentTree(comments);
+
+  const handleStartEditPost = () => {
+    requireAuth(() => {
+      if (!canEditPost()) {
+        setError("No tenés permisos para editar este post");
+        return;
       }
 
-      return (b.likeCount || 0) - (a.likeCount || 0);
-    });
+      setEditingPost(true);
+      setEditPostTitle(post.title);
+      setEditPostBody(post.body);
+      setEditPostError("");
 
-    return sorted.map((node) => ({
-      ...node,
-      children: sortCommentsRecursive(node.children || []),
-    }));
+      setEditingCommentId(null);
+      setEditCommentText("");
+      setEditCommentError("");
+      setReplyingToId(null);
+      setReplyText("");
+      setReplyError("");
+    });
   };
 
-  const filterTree = (nodes, term) => {
-    if (!term.trim()) {
-      return nodes;
-    }
+  const handleCancelEditPost = () => {
+    setEditingPost(false);
+    setEditPostTitle("");
+    setEditPostBody("");
+    setEditPostError("");
+  };
 
-    const searchLower = term.toLowerCase();
+  const handleUpdatePost = (event) => {
+    event.preventDefault();
 
-    return nodes
-      .map((node) => {
-        const ownMatch =
-          node.text?.toLowerCase().includes(searchLower) ||
-          node.Person?.nombre?.toLowerCase().includes(searchLower);
+    requireAuth(async () => {
+      if (!editPostTitle.trim()) {
+        setEditPostError("El título no puede estar vacío");
+        return;
+      }
 
-        const children = filterTree(node.children || [], term);
+      if (!editPostBody.trim()) {
+        setEditPostError("El contenido no puede estar vacío");
+        return;
+      }
 
-        if (ownMatch || children.length > 0) {
-          return {
-            ...node,
-            children,
-          };
+      try {
+        setEditPostLoading(true);
+        setEditPostError("");
+
+        const response = await fetch(`${API_URL}/posts/${postId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: editPostTitle.trim(),
+            body: editPostBody.trim(),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || data.error || "No se pudo editar el post"
+          );
         }
 
-        return null;
-      })
-      .filter(Boolean);
+        setEditingPost(false);
+        setEditPostTitle("");
+        setEditPostBody("");
+        loadData();
+      } catch (err) {
+        setEditPostError(err.message);
+      } finally {
+        setEditPostLoading(false);
+      }
+    });
   };
 
-  const commentTree = useMemo(() => {
-    const tree = buildCommentTree(comments);
-    const sorted = sortCommentsRecursive(tree);
+  const handleOpenDeletePostModal = () => {
+    requireAuth(() => {
+      if (!canDeletePost()) {
+        setError("No tenés permisos para borrar este post");
+        return;
+      }
 
-    return filterTree(sorted, search);
-  }, [comments, search, sortBy]);
+      setDeletePostModal(true);
+      setDeletePostError("");
+
+      setEditingPost(false);
+      setEditPostTitle("");
+      setEditPostBody("");
+      setEditPostError("");
+      setEditingCommentId(null);
+      setEditCommentText("");
+      setEditCommentError("");
+      setReplyingToId(null);
+      setReplyText("");
+      setReplyError("");
+    });
+  };
+
+  const handleCloseDeletePostModal = () => {
+    if (deletePostLoading) {
+      return;
+    }
+
+    setDeletePostModal(false);
+    setDeletePostError("");
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      setDeletePostLoading(true);
+      setDeletePostError("");
+
+      const response = await fetch(`${API_URL}/posts/${postId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "No se pudo borrar el post");
+      }
+
+      setDeletePostModal(false);
+
+      if (forumId) {
+        navigate(`/forum/${forumId}`);
+      } else {
+        navigate("/foros");
+      }
+    } catch (err) {
+      setDeletePostError(err.message);
+    } finally {
+      setDeletePostLoading(false);
+    }
+  };
 
   const handleLikePost = () => {
     requireAuth(async () => {
-      const previousLiked = likedByMe;
-      const previousLikeCount = post.likeCount || 0;
-
-      const nextLiked = !previousLiked;
-      const nextLikeCount = nextLiked
-        ? previousLikeCount + 1
-        : Math.max(previousLikeCount - 1, 0);
-
-      setLikedByMe(nextLiked);
-
-      setPost((prevPost) => ({
-        ...prevPost,
-        likeCount: nextLikeCount,
-      }));
+      if (likeLoading) {
+        return;
+      }
 
       try {
+        setLikeLoading(true);
         setError("");
 
         const response = await fetch(`${API_URL}/posts/${postId}/like`, {
@@ -314,21 +472,16 @@ const Post = ({ postId }) => {
           );
         }
 
+        setLikedByMe(data.likedByMe);
+
         setPost((prevPost) => ({
           ...prevPost,
-          likeCount: data.likeCount ?? nextLikeCount,
+          likeCount: data.likeCount,
         }));
-
-        setLikedByMe(data.likedByMe ?? data.userLiked ?? nextLiked);
       } catch (err) {
-        setLikedByMe(previousLiked);
-
-        setPost((prevPost) => ({
-          ...prevPost,
-          likeCount: previousLikeCount,
-        }));
-
         setError(err.message);
+      } finally {
+        setLikeLoading(false);
       }
     });
   };
@@ -369,6 +522,199 @@ const Post = ({ postId }) => {
         setCommentError(err.message);
       } finally {
         setCommentLoading(false);
+      }
+    });
+  };
+
+  const handleCreateReply = (event, parentCommentId) => {
+    event.preventDefault();
+
+    requireAuth(async () => {
+      if (!replyText.trim()) {
+        setReplyError("La respuesta no puede estar vacía");
+        return;
+      }
+
+      try {
+        setReplyLoading(true);
+        setReplyError("");
+
+        const response = await fetch(`${API_URL}/posts/${postId}/comments`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            text: replyText.trim(),
+            parentCommentId,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "No se pudo crear la respuesta");
+        }
+
+        setReplyText("");
+        setReplyingToId(null);
+
+        setExpandedThreads((prev) => ({
+          ...prev,
+          [parentCommentId]: true,
+        }));
+
+        loadData();
+      } catch (err) {
+        setReplyError(err.message);
+      } finally {
+        setReplyLoading(false);
+      }
+    });
+  };
+
+  const handleStartReply = (commentId) => {
+    requireAuth(() => {
+      setReplyingToId(commentId);
+      setReplyText("");
+      setReplyError("");
+
+      setEditingCommentId(null);
+      setEditCommentText("");
+      setEditCommentError("");
+
+      setEditingPost(false);
+      setEditPostTitle("");
+      setEditPostBody("");
+      setEditPostError("");
+    });
+  };
+
+  const handleOpenDeleteCommentModal = (comment) => {
+    requireAuth(() => {
+      if (!canDeleteComments()) {
+        setError("No tenés permisos para borrar comentarios");
+        return;
+      }
+
+      setCommentToDelete(comment);
+      setDeleteCommentError("");
+    });
+  };
+
+  const handleCloseDeleteCommentModal = () => {
+    if (deleteCommentLoading) {
+      return;
+    }
+
+    setCommentToDelete(null);
+    setDeleteCommentError("");
+  };
+
+  const handleDeleteComment = async () => {
+    if (!commentToDelete) {
+      return;
+    }
+
+    try {
+      setDeleteCommentLoading(true);
+      setDeleteCommentError("");
+
+      const response = await fetch(`${API_URL}/comments/${commentToDelete.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "No se pudo borrar el comentario");
+      }
+
+      setCommentToDelete(null);
+      setReplyingToId(null);
+      setReplyText("");
+      setEditingCommentId(null);
+      setEditCommentText("");
+      setEditCommentError("");
+      loadData();
+    } catch (err) {
+      setDeleteCommentError(err.message);
+    } finally {
+      setDeleteCommentLoading(false);
+    }
+  };
+
+  const handleStartEditComment = (comment) => {
+    requireAuth(() => {
+      if (!canEditComment(comment)) {
+        setError("No tenés permisos para editar este comentario");
+        return;
+      }
+
+      setEditingCommentId(comment.id);
+      setEditCommentText(comment.text);
+      setEditCommentError("");
+
+      setReplyingToId(null);
+      setReplyText("");
+      setReplyError("");
+
+      setEditingPost(false);
+      setEditPostTitle("");
+      setEditPostBody("");
+      setEditPostError("");
+    });
+  };
+
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditCommentText("");
+    setEditCommentError("");
+  };
+
+  const handleUpdateComment = (event, commentId) => {
+    event.preventDefault();
+
+    requireAuth(async () => {
+      if (!editCommentText.trim()) {
+        setEditCommentError("El comentario no puede estar vacío");
+        return;
+      }
+
+      try {
+        setEditCommentLoading(true);
+        setEditCommentError("");
+
+        const response = await fetch(`${API_URL}/comments/${commentId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            text: editCommentText.trim(),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || data.error || "No se pudo editar el comentario"
+          );
+        }
+
+        setEditingCommentId(null);
+        setEditCommentText("");
+        loadData();
+      } catch (err) {
+        setEditCommentError(err.message);
+      } finally {
+        setEditCommentLoading(false);
       }
     });
   };
@@ -432,14 +778,143 @@ const Post = ({ postId }) => {
               <span className="thread-comment-date">
                 {formatDate(comment.postDate || comment.createdAt)}
               </span>
+
+              {canDeleteComments() && (
+                <button
+                  type="button"
+                  className="delete-comment-icon"
+                  onClick={() => handleOpenDeleteCommentModal(comment)}
+                  title="Borrar comentario"
+                  aria-label="Borrar comentario"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="delete-comment-svg"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 3h6l1 2h4v2H4V5h4l1-2Z" />
+                    <path d="M6 9h12l-1 12H7L6 9Zm4 2v8h2v-8h-2Zm4 0v8h2v-8h-2Z" />
+                  </svg>
+                </button>
+              )}
             </div>
 
-            <p className="thread-comment-text">{comment.text}</p>
+            {editingCommentId === comment.id ? (
+              <Form
+                onSubmit={(event) => handleUpdateComment(event, comment.id)}
+                className="thread-reply-form"
+                noValidate
+              >
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  className="thread-reply-input"
+                  value={editCommentText}
+                  onChange={(event) => {
+                    setEditCommentText(event.target.value);
+                    setEditCommentError("");
+                  }}
+                  isInvalid={!!editCommentError}
+                />
+
+                {editCommentError && (
+                  <div className="thread-reply-error">{editCommentError}</div>
+                )}
+
+                <div className="thread-reply-actions">
+                  <Button
+                    type="submit"
+                    className="thread-reply-submit"
+                    disabled={editCommentLoading}
+                  >
+                    {editCommentLoading ? "Guardando..." : "Guardar"}
+                  </Button>
+
+                  <button
+                    type="button"
+                    className="thread-reply-cancel"
+                    onClick={handleCancelEditComment}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </Form>
+            ) : (
+              <p
+                className="thread-comment-text"
+                dangerouslySetInnerHTML={{
+                  __html: formatBodyText(comment.text),
+                }}
+              />
+            )}
 
             <div className="thread-comment-actions">
-              <button type="button">↑ {comment.likeCount || 0}</button>
-              <button type="button">Responder</button>
+              <button type="button" hidden>
+                ↑ {comment.likeCount || 0}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleStartReply(comment.id)}
+              >
+                Responder
+              </button>
+
+              {canEditComment(comment) && editingCommentId !== comment.id && (
+                <button
+                  type="button"
+                  onClick={() => handleStartEditComment(comment)}
+                >
+                  Editar
+                </button>
+              )}
             </div>
+
+            {replyingToId === comment.id && (
+              <Form
+                onSubmit={(event) => handleCreateReply(event, comment.id)}
+                className="thread-reply-form"
+                noValidate
+              >
+                <Form.Control
+                  type="text"
+                  className="thread-reply-input"
+                  placeholder={`Responder a ${author}`}
+                  value={replyText}
+                  onChange={(event) => {
+                    setReplyText(event.target.value);
+                    setReplyError("");
+                  }}
+                  isInvalid={!!replyError}
+                />
+
+                {replyError && (
+                  <div className="thread-reply-error">{replyError}</div>
+                )}
+
+                <div className="thread-reply-actions">
+                  <Button
+                    type="submit"
+                    className="thread-reply-submit"
+                    disabled={replyLoading}
+                  >
+                    {replyLoading ? "Respondiendo..." : "Responder"}
+                  </Button>
+
+                  <button
+                    type="button"
+                    className="thread-reply-cancel"
+                    onClick={() => {
+                      setReplyingToId(null);
+                      setReplyText("");
+                      setReplyError("");
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </Form>
+            )}
 
             {visibleChildren.length > 0 && (
               <div className="thread-children">
@@ -564,14 +1039,71 @@ const Post = ({ postId }) => {
             </div>
           </div>
 
-          <h1 className="post-main-title">{post.title}</h1>
+          {editingPost ? (
+            <Form onSubmit={handleUpdatePost} noValidate>
+              <Form.Group className="mb-3">
+                <Form.Control
+                  type="text"
+                  value={editPostTitle}
+                  onChange={(event) => {
+                    setEditPostTitle(event.target.value);
+                    setEditPostError("");
+                  }}
+                  isInvalid={!!editPostError}
+                />
+              </Form.Group>
 
-          <p className="post-main-description">{post.body}</p>
+              <Form.Group className="mb-3">
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  value={editPostBody}
+                  onChange={(event) => {
+                    setEditPostBody(event.target.value);
+                    setEditPostError("");
+                  }}
+                  isInvalid={!!editPostError}
+                />
+              </Form.Group>
+
+              {editPostError && (
+                <Alert variant="danger">
+                  {editPostError}
+                </Alert>
+              )}
+
+              <div className="thread-reply-actions">
+                <Button type="submit" disabled={editPostLoading}>
+                  {editPostLoading ? "Guardando..." : "Guardar"}
+                </Button>
+
+                <button
+                  type="button"
+                  className="thread-reply-cancel"
+                  onClick={handleCancelEditPost}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </Form>
+          ) : (
+            <>
+              <h1 className="post-main-title">{post.title}</h1>
+
+              <p
+                className="post-main-description"
+                dangerouslySetInnerHTML={{
+                  __html: formatBodyText(post.body),
+                }}
+              />
+            </>
+          )}
 
           <div className="post-main-actions">
             <button
               type="button"
               onClick={handleLikePost}
+              disabled={likeLoading}
               className={`post-like-button ${
                 likedByMe ? "post-like-active" : ""
               }`}
@@ -591,6 +1123,28 @@ const Post = ({ postId }) => {
             <span className="post-comments-count">
               {comments.length} comentarios
             </span>
+
+            {canEditPost() && !editingPost && (
+              <Button
+                type="button"
+                variant="outline-secondary"
+                size="sm"
+                onClick={handleStartEditPost}
+              >
+                Editar post
+              </Button>
+            )}
+
+            {canDeletePost() && (
+              <Button
+                type="button"
+                variant="outline-danger"
+                size="sm"
+                onClick={handleOpenDeletePostModal}
+              >
+                Eliminar post
+              </Button>
+            )}
           </div>
         </article>
 
@@ -598,7 +1152,7 @@ const Post = ({ postId }) => {
           <Form onSubmit={handleCreateComment} noValidate>
             <div className="post-comment-input-row">
               <div className="post-comment-user-avatar">
-                {getInitial(user?.nombre || user?.nick || "U")}
+                {getInitial(user?.nombre || "U")}
               </div>
 
               <Form.Control
@@ -631,30 +1185,6 @@ const Post = ({ postId }) => {
           </Form>
         </section>
 
-        <section className="post-comments-toolbar">
-          <div className="post-comments-sort">
-            <span>Ordenar por:</span>
-
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-              className="post-comments-select"
-            >
-              <option value="best">Mejores</option>
-              <option value="recent">Más recientes</option>
-            </select>
-          </div>
-
-          <div className="post-comments-search">
-            <input
-              type="text"
-              placeholder="Buscar comentarios"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </div>
-        </section>
-
         <section className="post-comments-thread">
           {commentTree.length === 0 ? (
             <div className="post-comments-empty">
@@ -665,6 +1195,95 @@ const Post = ({ postId }) => {
             commentTree.map((comment) => renderCommentNode(comment))
           )}
         </section>
+
+        <Modal
+          show={deletePostModal}
+          onHide={handleCloseDeletePostModal}
+          centered
+        >
+          <Modal.Header closeButton={!deletePostLoading}>
+            <Modal.Title>Borrar post</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <p className="mb-2">
+              ¿Estás seguro que deseás borrar este post?
+            </p>
+
+            {deletePostError && (
+              <Alert variant="danger" className="mt-3 mb-0">
+                {deletePostError}
+              </Alert>
+            )}
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={handleCloseDeletePostModal}
+              disabled={deletePostLoading}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              variant="danger"
+              onClick={handleDeletePost}
+              disabled={deletePostLoading}
+            >
+              {deletePostLoading ? "Borrando..." : "Borrar"}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal
+          show={!!commentToDelete}
+          onHide={handleCloseDeleteCommentModal}
+          centered
+        >
+          <Modal.Header closeButton={!deleteCommentLoading}>
+            <Modal.Title>Borrar comentario</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <p className="mb-2">
+              ¿Estás seguro que deseás borrar este comentario?
+            </p>
+
+            {commentToDelete && getNestedCommentCount(commentToDelete) > 0 && (
+              <p className="delete-comment-warning mb-0">
+                También se borrarán {getNestedCommentCount(commentToDelete)}
+                {getNestedCommentCount(commentToDelete) === 1
+                  ? " respuesta anidada."
+                  : " respuestas anidadas."}
+              </p>
+            )}
+
+            {deleteCommentError && (
+              <Alert variant="danger" className="mt-3 mb-0">
+                {deleteCommentError}
+              </Alert>
+            )}
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={handleCloseDeleteCommentModal}
+              disabled={deleteCommentLoading}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              variant="danger"
+              onClick={handleDeleteComment}
+              disabled={deleteCommentLoading}
+            >
+              {deleteCommentLoading ? "Borrando..." : "Borrar"}
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </section>
     </main>
   );
