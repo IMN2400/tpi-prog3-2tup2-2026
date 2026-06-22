@@ -161,9 +161,7 @@ export const deletePerson = async (req, res) => {
       });
     }
 
-    await person.update({
-      estado: false,
-    });
+    await person.destroy();
 
     res.json({
       message: "Usuario dado de baja correctamente",
