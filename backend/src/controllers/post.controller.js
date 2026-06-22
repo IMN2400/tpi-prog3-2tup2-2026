@@ -96,29 +96,51 @@ export const createPost = async (req, res) => {
 };
 
 export const updatePost = async (req, res) => {
-    try {
-        const {
-            title,
-            body, 
-            status,
-        } = req.body 
-        const post = await models.Post.findByPk(req.params.id)
+  try {
+    const { title, body } = req.body;
 
-        if (!post) {
-            return res.status(404).json({error:"No se ha encontrado el post"})
-        }
-        await post.update({
-            title,
-            body,
-            status
-        })
-        res.json(post)
+    const post = await models.Post.findByPk(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        message: "No se ha encontrado el post",
+      });
     }
-    catch (error) {
-        message: "Error al actualizar post"
-        res.status(500).json({error: error.message})
+
+    if (Number(post.userId) !== Number(req.user.id)) {
+      return res.status(403).json({
+        message: "Solo el autor puede editar este post",
+      });
     }
-}
+
+    if (!title || title.trim() === "") {
+      return res.status(400).json({
+        message: "El título no puede estar vacío",
+      });
+    }
+
+    if (!body || body.trim() === "") {
+      return res.status(400).json({
+        message: "El contenido no puede estar vacío",
+      });
+    }
+
+    await post.update({
+      title: title.trim(),
+      body: body.trim(),
+    });
+
+    res.json({
+      message: "Post actualizado correctamente",
+      post,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al actualizar post",
+      error: error.message,
+    });
+  }
+};
 
 export const deletearPost = async (req, res) => {
     try {

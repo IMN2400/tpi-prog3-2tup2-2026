@@ -15,6 +15,13 @@ const Post = ({ postId }) => {
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
+
+  const [editingPost, setEditingPost] = useState(false);
+  const [editPostTitle, setEditPostTitle] = useState("");
+  const [editPostBody, setEditPostBody] = useState("");
+  const [editPostLoading, setEditPostLoading] = useState(false);
+  const [editPostError, setEditPostError] = useState("");
+
   const [commentText, setCommentText] = useState("");
   const [replyingToId, setReplyingToId] = useState(null);
   const [replyText, setReplyText] = useState("");
@@ -83,8 +90,16 @@ const Post = ({ postId }) => {
     return isAdmin || isSysAdmin;
   };
 
+  const canEditPost = () => {
+    const postAuthorId = post?.userId || post?.Person?.id;
+
+    return Number(postAuthorId) === Number(user?.id);
+  };
+
   const canEditComment = (comment) => {
-    return Number(comment.userId) === Number(user?.id);
+    const commentAuthorId = comment?.userId || comment?.Person?.id;
+
+    return Number(commentAuthorId) === Number(user?.id);
   };
 
   const getNestedCommentCount = (comment) => {
@@ -274,6 +289,84 @@ const Post = ({ postId }) => {
 
   const commentTree = buildCommentTree(comments);
 
+  const handleStartEditPost = () => {
+    requireAuth(() => {
+      if (!canEditPost()) {
+        setError("No tenés permisos para editar este post");
+        return;
+      }
+
+      setEditingPost(true);
+      setEditPostTitle(post.title);
+      setEditPostBody(post.body);
+      setEditPostError("");
+
+      setEditingCommentId(null);
+      setEditCommentText("");
+      setEditCommentError("");
+      setReplyingToId(null);
+      setReplyText("");
+      setReplyError("");
+    });
+  };
+
+  const handleCancelEditPost = () => {
+    setEditingPost(false);
+    setEditPostTitle("");
+    setEditPostBody("");
+    setEditPostError("");
+  };
+
+  const handleUpdatePost = (event) => {
+    event.preventDefault();
+
+    requireAuth(async () => {
+      if (!editPostTitle.trim()) {
+        setEditPostError("El título no puede estar vacío");
+        return;
+      }
+
+      if (!editPostBody.trim()) {
+        setEditPostError("El contenido no puede estar vacío");
+        return;
+      }
+
+      try {
+        setEditPostLoading(true);
+        setEditPostError("");
+
+        const response = await fetch(`${API_URL}/posts/${postId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: editPostTitle.trim(),
+            body: editPostBody.trim(),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || data.error || "No se pudo editar el post"
+          );
+        }
+
+        setEditingPost(false);
+        setEditPostTitle("");
+        setEditPostBody("");
+        loadData();
+      } catch (err) {
+        setEditPostError(err.message);
+      } finally {
+        setEditPostLoading(false);
+      }
+    });
+  };
+
   const handleLikePost = () => {
     requireAuth(async () => {
       if (likeLoading) {
@@ -406,9 +499,15 @@ const Post = ({ postId }) => {
       setReplyingToId(commentId);
       setReplyText("");
       setReplyError("");
+
       setEditingCommentId(null);
       setEditCommentText("");
       setEditCommentError("");
+
+      setEditingPost(false);
+      setEditPostTitle("");
+      setEditPostBody("");
+      setEditPostError("");
     });
   };
 
@@ -479,9 +578,15 @@ const Post = ({ postId }) => {
       setEditingCommentId(comment.id);
       setEditCommentText(comment.text);
       setEditCommentError("");
+
       setReplyingToId(null);
       setReplyText("");
       setReplyError("");
+
+      setEditingPost(false);
+      setEditPostTitle("");
+      setEditPostBody("");
+      setEditPostError("");
     });
   };
 
@@ -854,14 +959,65 @@ const Post = ({ postId }) => {
             </div>
           </div>
 
-          <h1 className="post-main-title">{post.title}</h1>
+          {editingPost ? (
+            <Form onSubmit={handleUpdatePost} noValidate>
+              <Form.Group className="mb-3">
+                <Form.Control
+                  type="text"
+                  value={editPostTitle}
+                  onChange={(event) => {
+                    setEditPostTitle(event.target.value);
+                    setEditPostError("");
+                  }}
+                  isInvalid={!!editPostError}
+                />
+              </Form.Group>
 
-          <p
-            className="post-main-description"
-            dangerouslySetInnerHTML={{
-              __html: formatBodyText(post.body),
-            }}
-          />
+              <Form.Group className="mb-3">
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  value={editPostBody}
+                  onChange={(event) => {
+                    setEditPostBody(event.target.value);
+                    setEditPostError("");
+                  }}
+                  isInvalid={!!editPostError}
+                />
+              </Form.Group>
+
+              {editPostError && (
+                <Alert variant="danger">
+                  {editPostError}
+                </Alert>
+              )}
+
+              <div className="thread-reply-actions">
+                <Button type="submit" disabled={editPostLoading}>
+                  {editPostLoading ? "Guardando..." : "Guardar"}
+                </Button>
+
+                <button
+                  type="button"
+                  className="thread-reply-cancel"
+                  onClick={handleCancelEditPost}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </Form>
+          ) : (
+            <>
+              <h1 className="post-main-title">{post.title}</h1>
+
+              <p
+                className="post-main-description"
+                dangerouslySetInnerHTML={{
+                  __html: formatBodyText(post.body),
+                }}
+              />
+            </>
+          )}
 
           <div className="post-main-actions">
             <button
@@ -887,6 +1043,17 @@ const Post = ({ postId }) => {
             <span className="post-comments-count">
               {comments.length} comentarios
             </span>
+
+            {canEditPost() && !editingPost && (
+              <Button
+                type="button"
+                variant="outline-secondary"
+                size="sm"
+                onClick={handleStartEditPost}
+              >
+                Editar post
+              </Button>
+            )}
           </div>
         </article>
 
