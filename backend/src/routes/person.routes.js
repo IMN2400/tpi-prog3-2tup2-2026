@@ -10,7 +10,7 @@ import {
   makeAdmin,
 } from "../controllers/person.controller.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import { canManagePersons, onlySysAdmin } from "../middlewares/checkPersonPermissions.js";
+import { canManagePersons, onlySysAdmin, } from "../middlewares/checkPersonPermissions.js";
 
 const router = Router();
 
