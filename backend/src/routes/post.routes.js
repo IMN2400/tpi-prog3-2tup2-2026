@@ -6,8 +6,7 @@ import {
   createPost,
   updatePost,
   deletearPost,
-  likesPost,
-  getMyPostLike,
+  likesPost
 } from "../controllers/post.controller.js";
 
 import { verifyToken } from "../middlewares/verifyToken.js";
@@ -15,7 +14,6 @@ import { verifyToken } from "../middlewares/verifyToken.js";
 const router = Router();
 
 router.get("/posts", getPosts);
-router.get("/posts/:id/my-like", verifyToken, getMyPostLike);
 router.get("/posts/:id", getPostById);
 router.get("/forums/:forumId/posts", getPostByForum);
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
+import { useEffect, useMemo, useState } from "react";
+import { Alert, Button, Form, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
@@ -15,21 +15,15 @@ const Post = ({ postId }) => {
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
-  const [replyingToId, setReplyingToId] = useState(null);
-  const [replyText, setReplyText] = useState("");
-  const [replyLoading, setReplyLoading] = useState(false);
-  const [replyError, setReplyError] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [commentLoading, setCommentLoading] = useState(false);
-  const [likeLoading, setLikeLoading] = useState(false);
-  const [deleteCommentLoading, setDeleteCommentLoading] = useState(false);
-  const [commentToDelete, setCommentToDelete] = useState(null);
-  const [deleteCommentError, setDeleteCommentError] = useState("");
 
   const [error, setError] = useState("");
   const [commentError, setCommentError] = useState("");
 
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("best");
   const [expandedThreads, setExpandedThreads] = useState({});
   const [likedByMe, setLikedByMe] = useState(false);
 
@@ -73,23 +67,9 @@ const Post = ({ postId }) => {
     return true;
   };
 
-  const canDeleteComments = () => {
-    return isAdmin || isSysAdmin;
-  };
-
-  const getNestedCommentCount = (comment) => {
-    if (!comment?.children?.length) {
-      return 0;
-    }
-
-    return comment.children.reduce((total, child) => {
-      return total + 1 + getNestedCommentCount(child);
-    }, 0);
-  };
-
   const goToBanForm = (targetUser) => {
     const userId = targetUser.id;
-    const userName = targetUser.nombre || "Usuario";
+    const userName = targetUser.nombre || targetUser.nick || "Usuario";
 
     navigate(`/newban?userId=${userId}&userName=${encodeURIComponent(userName)}`);
   };
@@ -97,9 +77,7 @@ const Post = ({ postId }) => {
   const handleMakeAdmin = (targetUser) => {
     requireAuth(async () => {
       const confirmed = window.confirm(
-        `¿Querés convertir a ${
-          targetUser.nombre || "este usuario"
-        } en ADMIN?`
+        `¿Querés convertir a ${targetUser.nombre || "este usuario"} en ADMIN?`
       );
 
       if (!confirmed) {
@@ -142,40 +120,27 @@ const Post = ({ postId }) => {
       setError("");
 
       const postResponse = await fetch(`${API_URL}/posts/${postId}`);
-      const postData = await postResponse.json();
 
       if (!postResponse.ok) {
-        throw new Error(postData.message || "No se pudo cargar el post");
+        throw new Error("No se pudo cargar la publicación");
       }
+
+      const postData = await postResponse.json();
 
       setPost(postData);
+      setLikedByMe(postData.likedByMe || postData.userLiked || false);
 
-      const commentsResponse = await fetch(`${API_URL}/posts/${postId}/comments`);
-      const commentsData = await commentsResponse.json();
+      const commentsResponse = await fetch(
+        `${API_URL}/posts/${postId}/comments`
+      );
 
       if (!commentsResponse.ok) {
-        throw new Error(
-          commentsData.message || "No se pudieron cargar los comentarios"
-        );
+        throw new Error("No se pudieron cargar los comentarios");
       }
 
-      setComments(commentsData);
+      const commentsData = await commentsResponse.json();
 
-      if (token) {
-        const myLikeResponse = await fetch(`${API_URL}/posts/${postId}/my-like`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const myLikeData = await myLikeResponse.json();
-
-        if (myLikeResponse.ok) {
-          setLikedByMe(myLikeData.likedByMe);
-        }
-      } else {
-        setLikedByMe(false);
-      }
+      setComments(Array.isArray(commentsData) ? commentsData : []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -185,7 +150,7 @@ const Post = ({ postId }) => {
 
   useEffect(() => {
     loadData();
-  }, [postId, token]);
+  }, [postId]);
 
   const formatDate = (date) => {
     if (!date) {
@@ -262,16 +227,76 @@ const Post = ({ postId }) => {
     return roots;
   };
 
-  const commentTree = buildCommentTree(comments);
+  const sortCommentsRecursive = (nodes) => {
+    const sorted = [...nodes].sort((a, b) => {
+      if (sortBy === "recent") {
+        return (
+          new Date(b.postDate || b.createdAt || 0) -
+          new Date(a.postDate || a.createdAt || 0)
+        );
+      }
+
+      return (b.likeCount || 0) - (a.likeCount || 0);
+    });
+
+    return sorted.map((node) => ({
+      ...node,
+      children: sortCommentsRecursive(node.children || []),
+    }));
+  };
+
+  const filterTree = (nodes, term) => {
+    if (!term.trim()) {
+      return nodes;
+    }
+
+    const searchLower = term.toLowerCase();
+
+    return nodes
+      .map((node) => {
+        const ownMatch =
+          node.text?.toLowerCase().includes(searchLower) ||
+          node.Person?.nombre?.toLowerCase().includes(searchLower);
+
+        const children = filterTree(node.children || [], term);
+
+        if (ownMatch || children.length > 0) {
+          return {
+            ...node,
+            children,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean);
+  };
+
+  const commentTree = useMemo(() => {
+    const tree = buildCommentTree(comments);
+    const sorted = sortCommentsRecursive(tree);
+
+    return filterTree(sorted, search);
+  }, [comments, search, sortBy]);
 
   const handleLikePost = () => {
     requireAuth(async () => {
-      if (likeLoading) {
-        return;
-      }
+      const previousLiked = likedByMe;
+      const previousLikeCount = post.likeCount || 0;
+
+      const nextLiked = !previousLiked;
+      const nextLikeCount = nextLiked
+        ? previousLikeCount + 1
+        : Math.max(previousLikeCount - 1, 0);
+
+      setLikedByMe(nextLiked);
+
+      setPost((prevPost) => ({
+        ...prevPost,
+        likeCount: nextLikeCount,
+      }));
 
       try {
-        setLikeLoading(true);
         setError("");
 
         const response = await fetch(`${API_URL}/posts/${postId}/like`, {
@@ -289,16 +314,21 @@ const Post = ({ postId }) => {
           );
         }
 
-        setLikedByMe(data.likedByMe);
+        setPost((prevPost) => ({
+          ...prevPost,
+          likeCount: data.likeCount ?? nextLikeCount,
+        }));
+
+        setLikedByMe(data.likedByMe ?? data.userLiked ?? nextLiked);
+      } catch (err) {
+        setLikedByMe(previousLiked);
 
         setPost((prevPost) => ({
           ...prevPost,
-          likeCount: data.likeCount,
+          likeCount: previousLikeCount,
         }));
-      } catch (err) {
+
         setError(err.message);
-      } finally {
-        setLikeLoading(false);
       }
     });
   };
@@ -341,116 +371,6 @@ const Post = ({ postId }) => {
         setCommentLoading(false);
       }
     });
-  };
-
-  const handleCreateReply = (event, parentCommentId) => {
-    event.preventDefault();
-
-    requireAuth(async () => {
-      if (!replyText.trim()) {
-        setReplyError("La respuesta no puede estar vacía");
-        return;
-      }
-
-      try {
-        setReplyLoading(true);
-        setReplyError("");
-
-        const response = await fetch(`${API_URL}/posts/${postId}/comments`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            text: replyText.trim(),
-            parentCommentId,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "No se pudo crear la respuesta");
-        }
-
-        setReplyText("");
-        setReplyingToId(null);
-
-        setExpandedThreads((prev) => ({
-          ...prev,
-          [parentCommentId]: true,
-        }));
-
-        loadData();
-      } catch (err) {
-        setReplyError(err.message);
-      } finally {
-        setReplyLoading(false);
-      }
-    });
-  };
-
-  const handleStartReply = (commentId) => {
-    requireAuth(() => {
-      setReplyingToId(commentId);
-      setReplyText("");
-      setReplyError("");
-    });
-  };
-
-  const handleOpenDeleteCommentModal = (comment) => {
-    requireAuth(() => {
-      if (!canDeleteComments()) {
-        setError("No tenés permisos para borrar comentarios");
-        return;
-      }
-
-      setCommentToDelete(comment);
-      setDeleteCommentError("");
-    });
-  };
-
-  const handleCloseDeleteCommentModal = () => {
-    if (deleteCommentLoading) {
-      return;
-    }
-
-    setCommentToDelete(null);
-    setDeleteCommentError("");
-  };
-
-  const handleDeleteComment = async () => {
-    if (!commentToDelete) {
-      return;
-    }
-
-    try {
-      setDeleteCommentLoading(true);
-      setDeleteCommentError("");
-
-      const response = await fetch(`${API_URL}/comments/${commentToDelete.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "No se pudo borrar el comentario");
-      }
-
-      setCommentToDelete(null);
-      setReplyingToId(null);
-      setReplyText("");
-      loadData();
-    } catch (err) {
-      setDeleteCommentError(err.message);
-    } finally {
-      setDeleteCommentLoading(false);
-    }
   };
 
   const toggleThread = (commentId) => {
@@ -512,85 +432,14 @@ const Post = ({ postId }) => {
               <span className="thread-comment-date">
                 {formatDate(comment.postDate || comment.createdAt)}
               </span>
-
-              {canDeleteComments() && (
-                <button
-                  type="button"
-                  className="delete-comment-icon"
-                  onClick={() => handleOpenDeleteCommentModal(comment)}
-                  title="Borrar comentario"
-                  aria-label="Borrar comentario"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="delete-comment-svg"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 3h6l1 2h4v2H4V5h4l1-2Z" />
-                    <path d="M6 9h12l-1 12H7L6 9Zm4 2v8h2v-8h-2Zm4 0v8h2v-8h-2Z" />
-                  </svg>
-                </button>
-              )}
             </div>
 
             <p className="thread-comment-text">{comment.text}</p>
 
             <div className="thread-comment-actions">
-              <button type="button" hidden>↑ {comment.likeCount || 0}</button>
-
-              <button
-                type="button"
-                onClick={() => handleStartReply(comment.id)}
-              >
-                Responder
-              </button>
+              <button type="button">↑ {comment.likeCount || 0}</button>
+              <button type="button">Responder</button>
             </div>
-
-            {replyingToId === comment.id && (
-              <Form
-                onSubmit={(event) => handleCreateReply(event, comment.id)}
-                className="thread-reply-form"
-                noValidate
-              >
-                <Form.Control
-                  type="text"
-                  className="thread-reply-input"
-                  placeholder={`Responder a ${author}`}
-                  value={replyText}
-                  onChange={(event) => {
-                    setReplyText(event.target.value);
-                    setReplyError("");
-                  }}
-                  isInvalid={!!replyError}
-                />
-
-                {replyError && (
-                  <div className="thread-reply-error">{replyError}</div>
-                )}
-
-                <div className="thread-reply-actions">
-                  <Button
-                    type="submit"
-                    className="thread-reply-submit"
-                    disabled={replyLoading}
-                  >
-                    {replyLoading ? "Respondiendo..." : "Responder"}
-                  </Button>
-
-                  <button
-                    type="button"
-                    className="thread-reply-cancel"
-                    onClick={() => {
-                      setReplyingToId(null);
-                      setReplyText("");
-                      setReplyError("");
-                    }}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </Form>
-            )}
 
             {visibleChildren.length > 0 && (
               <div className="thread-children">
@@ -723,7 +572,6 @@ const Post = ({ postId }) => {
             <button
               type="button"
               onClick={handleLikePost}
-              disabled={likeLoading}
               className={`post-like-button ${
                 likedByMe ? "post-like-active" : ""
               }`}
@@ -750,7 +598,7 @@ const Post = ({ postId }) => {
           <Form onSubmit={handleCreateComment} noValidate>
             <div className="post-comment-input-row">
               <div className="post-comment-user-avatar">
-                {getInitial(user?.nombre || "U")}
+                {getInitial(user?.nombre || user?.nick || "U")}
               </div>
 
               <Form.Control
@@ -783,6 +631,30 @@ const Post = ({ postId }) => {
           </Form>
         </section>
 
+        <section className="post-comments-toolbar">
+          <div className="post-comments-sort">
+            <span>Ordenar por:</span>
+
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              className="post-comments-select"
+            >
+              <option value="best">Mejores</option>
+              <option value="recent">Más recientes</option>
+            </select>
+          </div>
+
+          <div className="post-comments-search">
+            <input
+              type="text"
+              placeholder="Buscar comentarios"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+        </section>
+
         <section className="post-comments-thread">
           {commentTree.length === 0 ? (
             <div className="post-comments-empty">
@@ -793,55 +665,6 @@ const Post = ({ postId }) => {
             commentTree.map((comment) => renderCommentNode(comment))
           )}
         </section>
-
-        <Modal
-          show={!!commentToDelete}
-          onHide={handleCloseDeleteCommentModal}
-          centered
-        >
-          <Modal.Header closeButton={!deleteCommentLoading}>
-            <Modal.Title>Borrar comentario</Modal.Title>
-          </Modal.Header>
-
-          <Modal.Body>
-            <p className="mb-2">
-              ¿Estás seguro que deseás borrar este comentario?
-            </p>
-
-            {commentToDelete && getNestedCommentCount(commentToDelete) > 0 && (
-              <p className="delete-comment-warning mb-0">
-                También se borrarán {getNestedCommentCount(commentToDelete)}
-                {getNestedCommentCount(commentToDelete) === 1
-                  ? " respuesta anidada."
-                  : " respuestas anidadas."}
-              </p>
-            )}
-
-            {deleteCommentError && (
-              <Alert variant="danger" className="mt-3 mb-0">
-                {deleteCommentError}
-              </Alert>
-            )}
-          </Modal.Body>
-
-          <Modal.Footer>
-            <Button
-              variant="secondary"
-              onClick={handleCloseDeleteCommentModal}
-              disabled={deleteCommentLoading}
-            >
-              Cancelar
-            </Button>
-
-            <Button
-              variant="danger"
-              onClick={handleDeleteComment}
-              disabled={deleteCommentLoading}
-            >
-              {deleteCommentLoading ? "Borrando..." : "Borrar"}
-            </Button>
-          </Modal.Footer>
-        </Modal>
       </section>
     </main>
   );

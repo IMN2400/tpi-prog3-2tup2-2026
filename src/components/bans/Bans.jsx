@@ -1,144 +1,159 @@
-import { useEffect, useState } from "react";
-import { Alert, Button, Table } from "react-bootstrap";
-import { useAuth } from "../../context/AuthContext";
-import "./Bans.css";
+import React from 'react'
+import { Button, Table } from 'react-bootstrap'
+import { Form } from 'react-router-dom'
+import { useState, useEffect } from "react"
+
 
 const Bans = () => {
-  const { token } = useAuth();
+    const [bans, setBans] = useState([])
 
-  const [bans, setBans] = useState([]);
-  const [banLoadingId, setBanLoadingId] = useState(null);
-  const [error, setError] = useState("");
+    useEffect(() => {
+        fetch("http://localhost:3000/bans")
+            .then(res => res.json())
+            .then(data => setBans(data))
+            .catch(error => console.error(error))
+    }, [])
 
-  useEffect(() => {
-  if (!token) {
-    return;
-  }
+    const getRemainingDays = (date, duration) => {
 
-  const cargarBans = async () => {
-    try {
-      setError("");
+        const banDate = new Date(date);
 
-      const response = await fetch("http://localhost:3000/bans", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        const expirationDate = new Date(banDate);
 
-      const data = await response.json();
+        expirationDate.setDate(
+            expirationDate.getDate() + duration
+        );
 
-      if (!response.ok) {
-        throw new Error(data.message || "No se pudieron cargar los baneos");
-      }
+        const today = new Date();
 
-      setBans(data);
-    } catch (error) {
-      setError(error.message);
-      setBans([]);
-    }
-  };
+        const diffTime =
+            expirationDate - today;
 
-  cargarBans();
-}, [token]);
+        const diffDays =
+            Math.ceil(
+                diffTime / (1000 * 60 * 60 * 24)
+            );
 
+        if (diffDays <= 0) {
+            return 'Ban expirado';
+        }
 
-  const desban = async (ban) => {
-    try {
-      setBanLoadingId(ban.id);
+        return diffDays === 1
+            ? '1 día restante'
+            : `${diffDays} días restantes`;
+    };
 
-      const respuesta = await fetch(`http://localhost:3000/bans/${ban.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          estado: "desbanneado",
-        }),
-      });
+    const desban = async (ban) => {
 
-      const data = await respuesta.json();
+        const banDate = new Date(ban.date);
 
-      if (!respuesta.ok) {
-        throw new Error(data.message || "Error al actualizar el ban");
-      }
+        const expirationDate =
+            new Date(banDate);
 
-      setBans((prevBans) =>
-        prevBans.map((item) =>
-          item.id === ban.id
-            ? {
-                ...item,
-                estado: "desbanneado",
-              }
-            : item
-        )
-      );
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setBanLoadingId(null);
-    }
-  };
+        expirationDate.setDate(
+            expirationDate.getDate()
+            + ban.duration
+        );
 
-  return (
-  <main className="bans-page">
-    <div className="container mt-4">
-      <h1 className="mb-4" style={{ color: "green" }}>
-        Lista de baneos
-      </h1>
-        {error && (
-        <Alert variant="danger">
-            {error}
-        </Alert>
-        )}
-      <Table striped bordered hover>
-        <thead className="table-success">
-          <tr>
-            <th>Usuario baneado</th>
-            <th>Admin</th>
-            <th>Motivo</th>
-            <th>Fecha de baneo</th>
-            <th>Duración</th>
-            <th>Estado</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
+        const today = new Date();
 
-        <tbody>
-          {bans.map((item) => (
-            <tr key={item.id}>
-              <td>{item.bannedUser?.nombre || "Usuario no encontrado"}</td>
+        const diffTime =
+            expirationDate - today;
 
-              <td>{item.adminUser?.nombre || "Admin no encontrado"}</td>
+        const diffDays = Math.ceil(
+            diffTime / (1000 * 60 * 60 * 24)
+        );
 
-              <td>{item.reason}</td>
+        let newDuration = ban.duration - diffDays;
 
-              <td>{new Date(item.date).toLocaleDateString("es-AR")}</td>
+        if (newDuration < 0) {
+            newDuration = 0;
+        }
 
-              <td>
-                {item.duration === 1 ? "1 día" : `${item.duration} días`}
-                <br />({item.remainingText})
-              </td>
+        try {
 
-              <td>{item.estado}</td>
+            const respuesta = await fetch(
+                `http://localhost:3000/bans/${ban.id}`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify({
+                        duration: newDuration,
+                        estado: 'desbanneado'
+                    })
+                }
+            );
 
-              <td>
-                <Button
-                  variant="warning"
-                  size="sm"
-                  onClick={() => desban(item)}
-                  disabled={item.estado !== "activo" || banLoadingId === item.id}
-                >
-                  {banLoadingId === item.id ? "Desbaneando..." : "Desbanear"}
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>
-  </main>
-  );
-};
+            if (respuesta.ok) {
+
+                alert(
+                    'Ban actualizado exitosamente'
+                );
+
+            } else {
+
+                alert(
+                    'Error al actualizar el ban'
+                );
+            }
+
+        } catch (error) {
+
+            console.error(
+                'Error de conexión:',
+                error
+            );
+        }
+    };
+
+    return (
+        <div className='container mt-4'>
+            <h1 className='mb-4' style={{ color: 'green' }}>Lista de baneos</h1>
+            <Table striped bordered hover>
+                <thead className='table-success'>
+                    <tr>
+                        <th>ID</th>
+                        <th>ID del usuario</th>
+                        <th>ID Admin</th>
+                        <th>Motivo</th>
+                        <th>Fecha de baneo</th>
+                        <th>Duracion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {bans.map((item) => (
+                        <tr key={item.id}>
+                            <td>{item.id}</td>
+                            <td>{item.userId}</td>
+                            <td>{item.adminId}</td>
+                            <td>{item.reason}</td>
+                            <td>{new Date(item.date).toLocaleDateString('es-AR')}</td>
+                            <td>{item.duration === 1
+                                ? '1 día'
+                                : `${item.duration} días`}
+                                <br />(
+                                {getRemainingDays(
+                                    item.date,
+                                    item.duration
+                                )})
+                            </td>
+                            <td>{item.estado} </td>
+                            <td>
+                                <button
+                                    variant="warning"
+                                    onClick={() => desban(item)}>
+                                    Desbanear
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+        </div>
+    )
+}
 
 export default Bans;
