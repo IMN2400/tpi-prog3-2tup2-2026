@@ -58,6 +58,7 @@ const NavBar = () => {
         throw new Error(data.message || "No se pudo eliminar el usuario");
       }
       else {
+      closeDeleteModal();
       logout();
       navigate("/register")}
     } catch (err) {
@@ -109,8 +110,8 @@ const NavBar = () => {
                   <br/><p>Si acepta, su cuenta será eliminada y ya <b>no</b> podrá entrar al foro con ella. ¿Está seguro que eso es lo que quiere?</p>
                   </Modal.Body>
                   <ModalFooter>
-                    <Button variant="secondary" onClick={closeDeleteModal}>Cancelar</Button>
-                    <Button variant="danger" onClick={handleDeleteAccount}>Eliminar mi cuenta</Button>
+                    <Button variant="secondary" onClick={closeDeleteModal} disabled={deleteAccountLoading}>Cancelar</Button>
+                    <Button variant="danger" onClick={handleDeleteAccount} disabled={deleteAccountLoading}>Eliminar mi cuenta</Button>
                   </ModalFooter>
               </Modal>
                 
