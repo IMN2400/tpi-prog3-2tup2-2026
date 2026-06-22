@@ -8,8 +8,14 @@ import { useState } from "react";
 const ForumDisplay = ({ forum }) => {
   const navigate = useNavigate();
 
+  const { token, isSysAdmin, isAuthenticated } = useAuth();
+
   const { id, nombre, descripcion, estado } = forum;
 
+  const [deletionModal, setDeletionModal] = useState(false);
+  const [deleteForumLoading, setDeleteForumLoading] = useState(false);
+  const [deleteForumError, setDeleteForumError] = useState("");
+  const [isForumVisible, setIsForumVisible] = useState(estado);
 
   const posts = Array.isArray(forum.Posts) ? forum.Posts : [];
   const totalPosts = posts.length;
@@ -21,42 +27,31 @@ const ForumDisplay = ({ forum }) => {
   };
 
   // Verificación de que el usuario tenga los permisos necesarios.
-  const { token, isSysAdmin, isAuthenticated } = useAuth();
-  const canDeleteForum = (!isSysAdmin || !isAuthenticated) ? false : true
-
-
-
-  const [deletionModal, setDeletionModal] = useState(false)
-  const [deleteForumLoading, setDeleteForumLoading] = useState(false)
-  const [deleteForumError, setDeleteForumError] = useState(null)
+  const canDeleteForum = isSysAdmin && isAuthenticated;
 
   // Esta función abre el modal para eliminar foros...
   const handleOpenDeleteForumModal = () => {
     if (!canDeleteForum) {
-      setError("No tenés permisos para borrar comentarios");
+      setDeleteForumError("No tenés permisos para borrar foros");
       return;
     }
+
     setDeletionModal(true);
     setDeleteForumError("");
   };
-
 
   // ...y esta lo cierra.
   const handleCloseDeleteForumModal = () => {
     if (deleteForumLoading) {
       return;
     }
+
     setDeletionModal(false);
     setDeleteForumError("");
   };
 
-
   // Esta función da la baja lógica del foro, que no puede darse de baja físicamente fuera del servidor. Los posts seguirán accesibles, pero solo por link directo.
   const handleDeleteForum = async () => {
-    if (!deletionModal) {
-      return;
-    }
-
     try {
       setDeleteForumLoading(true);
       setDeleteForumError("");
@@ -75,8 +70,7 @@ const ForumDisplay = ({ forum }) => {
       }
 
       setDeletionModal(false);
-      setDeleted(!deleted)
-      
+      setIsForumVisible(false);
     } catch (err) {
       setDeleteForumError(err.message);
     } finally {
@@ -84,23 +78,8 @@ const ForumDisplay = ({ forum }) => {
     }
   };
 
-
-
-
-  // Componente del botón de borrar foros. Solo se renderiza si el usuario tiene la autorización correcta.
-  const DeleteButton = () => {
-    if (!canDeleteForum) { return };
-
-    return <Button
-      variant="outline-danger"
-      onClick={handleOpenDeleteForumModal}>Eliminar foro</Button>
-  }
-
-
-
   // Si el foro se dió de baja, no se renderiza.
-  const [deleted, setDeleted] = useState(estado);
-  if (!deleted) return <></>;
+  if (!isForumVisible) return null;
 
   // Return exitoso del foro.
   return (
@@ -129,19 +108,25 @@ const ForumDisplay = ({ forum }) => {
         >
           Ir al foro
         </Button>
-        <DeleteButton />
+
+        {/* Componente del botón de borrar foros. Solo se renderiza si el usuario tiene la autorización correcta. */}
+        {canDeleteForum && (
+          <Button variant="outline-danger" onClick={handleOpenDeleteForumModal}>
+            Eliminar foro
+          </Button>
+        )}
       </Card.Body>
-      <Modal
-        show={deletionModal}
-        onHide={handleCloseDeleteForumModal}
-        centered >
+
+      <Modal show={deletionModal} onHide={handleCloseDeleteForumModal} centered>
         <Modal.Header closeButton={!deleteForumLoading}>
           <Modal.Title>Borrar foro</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           <p className="mb-2">
-            ¿Estás seguro que deseás borrar este foro?</p>
+            ¿Estás seguro que deseás borrar este foro?
+          </p>
+
           {deleteForumError && (
             <Alert variant="danger" className="mt-3 mb-0">
               {deleteForumError}
@@ -153,14 +138,16 @@ const ForumDisplay = ({ forum }) => {
           <Button
             variant="secondary"
             onClick={handleCloseDeleteForumModal}
-            disabled={deleteForumLoading} >
+            disabled={deleteForumLoading}
+          >
             Cancelar
           </Button>
 
           <Button
             variant="danger"
             onClick={handleDeleteForum}
-            disabled={deleteForumLoading} >
+            disabled={deleteForumLoading}
+          >
             {deleteForumLoading ? "Borrando..." : "Borrar"}
           </Button>
         </Modal.Footer>

@@ -28,6 +28,11 @@ const Post = ({ postId }) => {
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [deleteCommentError, setDeleteCommentError] = useState("");
 
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentText, setEditCommentText] = useState("");
+  const [editCommentLoading, setEditCommentLoading] = useState(false);
+  const [editCommentError, setEditCommentError] = useState("");
+
   const [error, setError] = useState("");
   const [commentError, setCommentError] = useState("");
 
@@ -76,6 +81,10 @@ const Post = ({ postId }) => {
 
   const canDeleteComments = () => {
     return isAdmin || isSysAdmin;
+  };
+
+  const canEditComment = (comment) => {
+    return Number(comment.userId) === Number(user?.id);
   };
 
   const getNestedCommentCount = (comment) => {
@@ -397,6 +406,9 @@ const Post = ({ postId }) => {
       setReplyingToId(commentId);
       setReplyText("");
       setReplyError("");
+      setEditingCommentId(null);
+      setEditCommentText("");
+      setEditCommentError("");
     });
   };
 
@@ -446,12 +458,80 @@ const Post = ({ postId }) => {
       setCommentToDelete(null);
       setReplyingToId(null);
       setReplyText("");
+      setEditingCommentId(null);
+      setEditCommentText("");
+      setEditCommentError("");
       loadData();
     } catch (err) {
       setDeleteCommentError(err.message);
     } finally {
       setDeleteCommentLoading(false);
     }
+  };
+
+  const handleStartEditComment = (comment) => {
+    requireAuth(() => {
+      if (!canEditComment(comment)) {
+        setError("No tenés permisos para editar este comentario");
+        return;
+      }
+
+      setEditingCommentId(comment.id);
+      setEditCommentText(comment.text);
+      setEditCommentError("");
+      setReplyingToId(null);
+      setReplyText("");
+      setReplyError("");
+    });
+  };
+
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditCommentText("");
+    setEditCommentError("");
+  };
+
+  const handleUpdateComment = (event, commentId) => {
+    event.preventDefault();
+
+    requireAuth(async () => {
+      if (!editCommentText.trim()) {
+        setEditCommentError("El comentario no puede estar vacío");
+        return;
+      }
+
+      try {
+        setEditCommentLoading(true);
+        setEditCommentError("");
+
+        const response = await fetch(`${API_URL}/comments/${commentId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            text: editCommentText.trim(),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || data.error || "No se pudo editar el comentario"
+          );
+        }
+
+        setEditingCommentId(null);
+        setEditCommentText("");
+        loadData();
+      } catch (err) {
+        setEditCommentError(err.message);
+      } finally {
+        setEditCommentLoading(false);
+      }
+    });
   };
 
   const toggleThread = (commentId) => {
@@ -534,11 +614,59 @@ const Post = ({ postId }) => {
               )}
             </div>
 
-            <p className="thread-comment-text" dangerouslySetInnerHTML={{ __html: formatBodyText(comment.text) }} 
-/>
+            {editingCommentId === comment.id ? (
+              <Form
+                onSubmit={(event) => handleUpdateComment(event, comment.id)}
+                className="thread-reply-form"
+                noValidate
+              >
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  className="thread-reply-input"
+                  value={editCommentText}
+                  onChange={(event) => {
+                    setEditCommentText(event.target.value);
+                    setEditCommentError("");
+                  }}
+                  isInvalid={!!editCommentError}
+                />
+
+                {editCommentError && (
+                  <div className="thread-reply-error">{editCommentError}</div>
+                )}
+
+                <div className="thread-reply-actions">
+                  <Button
+                    type="submit"
+                    className="thread-reply-submit"
+                    disabled={editCommentLoading}
+                  >
+                    {editCommentLoading ? "Guardando..." : "Guardar"}
+                  </Button>
+
+                  <button
+                    type="button"
+                    className="thread-reply-cancel"
+                    onClick={handleCancelEditComment}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </Form>
+            ) : (
+              <p
+                className="thread-comment-text"
+                dangerouslySetInnerHTML={{
+                  __html: formatBodyText(comment.text),
+                }}
+              />
+            )}
 
             <div className="thread-comment-actions">
-              <button type="button" hidden>↑ {comment.likeCount || 0}</button>
+              <button type="button" hidden>
+                ↑ {comment.likeCount || 0}
+              </button>
 
               <button
                 type="button"
@@ -546,6 +674,15 @@ const Post = ({ postId }) => {
               >
                 Responder
               </button>
+
+              {canEditComment(comment) && editingCommentId !== comment.id && (
+                <button
+                  type="button"
+                  onClick={() => handleStartEditComment(comment)}
+                >
+                  Editar
+                </button>
+              )}
             </div>
 
             {replyingToId === comment.id && (
@@ -719,8 +856,12 @@ const Post = ({ postId }) => {
 
           <h1 className="post-main-title">{post.title}</h1>
 
-          <p className="post-main-description" dangerouslySetInnerHTML={{ __html: formatBodyText(post.body) }} 
-/>
+          <p
+            className="post-main-description"
+            dangerouslySetInnerHTML={{
+              __html: formatBodyText(post.body),
+            }}
+          />
 
           <div className="post-main-actions">
             <button

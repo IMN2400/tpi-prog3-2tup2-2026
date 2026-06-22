@@ -113,27 +113,44 @@ export const createComment = async (req, res) => {
 };
 
 export const updateComment = async (req, res) => {
-    try{
-        const {
-            text
-        } = req.body
-        const comment = await models.Comment.findByPk(req.params.id)
+  try {
+    const { text } = req.body;
 
-        if (!comment) {
-            return res.status(404).json ({
-                error: "No se pudo encontrar el comentario"
-            })
-        }
-        await comment.update({
-            text
-        })
-        res.json(comment)
+    const comment = await models.Comment.findByPk(req.params.id);
+
+    if (!comment) {
+      return res.status(404).json({
+        message: "No se pudo encontrar el comentario",
+      });
     }
-    catch(error) {
-        message: "Error al actualizar comentario"
-        res.status(500).json({error: error.message})
+
+    if (Number(comment.userId) !== Number(req.user.id)) {
+      return res.status(403).json({
+        message: "Solo el autor puede editar este comentario",
+      });
     }
-}
+
+    if (!text || text.trim() === "") {
+      return res.status(400).json({
+        message: "El comentario no puede estar vacío",
+      });
+    }
+
+    await comment.update({
+      text: text.trim(),
+    });
+
+    res.json({
+      message: "Comentario actualizado correctamente",
+      comment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al actualizar comentario",
+      error: error.message,
+    });
+  }
+};
 
 
 const getNestedCommentIds = async (commentId) => {
