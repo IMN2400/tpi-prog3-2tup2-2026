@@ -21,11 +21,8 @@ const ForumDisplay = ({ forum }) => {
   };
 
   // Verificación de que el usuario tenga los permisos necesarios.
-  const { token, isSysAdmin } = useAuth();
-  const canDeleteForum = () => {
-    if (!isSysAdmin || !id) { return false };
-    return true
-  }
+  const { token, isSysAdmin, isAuthenticated } = useAuth();
+  const canDeleteForum = (!isSysAdmin || !isAuthenticated) ? false : true
 
 
 
