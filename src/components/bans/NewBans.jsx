@@ -1,195 +1,173 @@
-import { useEffect, useState } from "react";
-import { Alert, Button, Card, Col, Form, FormGroup, Row } from "react-bootstrap";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import React from 'react'
+import { Button, Card, Col, Form, FormGroup, Row, Modal } from "react-bootstrap";
+import { useState } from "react"
 
-const NewBan = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { token, user } = useAuth();
+const NewBan = ({ userId, onClose }) => {
 
-  const selectedUserId = searchParams.get("userId") || "";
-  const selectedUserName = searchParams.get("userName") || "Usuario seleccionado";
-
-  const [formData, setFormData] = useState({
-    userId: selectedUserId,
-    reason: "",
-    duration: "",
-  });
-
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      userId: selectedUserId,
-    }));
-  }, [selectedUserId]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData({
-      ...formData,
-      [name]: value,
+    const [formData, setFormData] = useState({
+        userId: userId,
+        adminId: '',
+        reason: '',
+        duration: ''
     });
 
-    setError("");
-    setSuccess("");
-  };
+    const handleChange = (e) => {
+        const { name, value } = e.target;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
 
-    if (!formData.userId) {
-      setError("No se seleccionó ningún usuario para banear.");
-      return;
-    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    if (!formData.reason.trim()) {
-      setError("El motivo del baneo es obligatorio.");
-      return;
-    }
+        try {
+            const response = await fetch('http://localhost:3000/bans', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: Number(formData.userId),
+                    adminId: Number(formData.adminId),
+                    reason: formData.reason,
+                    duration: Number(formData.duration)
+                })
+            });
 
-    if (!formData.duration || Number(formData.duration) <= 0) {
-      setError("La duración debe ser mayor a 0 días.");
-      return;
-    }
+            const data = await response.json();
+            if (response.ok) {
+                alert('Ban creado correctamente');
 
-    try {
-      setLoading(true);
-      setError("");
-      setSuccess("");
+                console.log(data);
 
-      const response = await fetch("http://localhost:3000/bans", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: Number(formData.userId),
-          adminId: Number(user?.id),
-          reason: formData.reason.trim(),
-          duration: Number(formData.duration),
-        }),
-      });
+                setFormData({
+                    userId: '',
+                    adminId: '',
+                    reason: '',
+                    duration: ''
+                });
 
-      const data = await response.json();
+            } else {
+                alert(data.message || 'Error al crear el ban');
+            }
 
-      if (!response.ok) {
-        throw new Error(data.message || "Error al crear el ban");
-      }
+        } catch (error) {
+            console.error(error);
+            alert('Error conectando con el servidor');
+        }
+    };
 
-      setSuccess("Ban creado correctamente.");
+    return (
+        <div className="d-flex justify-content-center mt-5">
 
-      setFormData({
-        userId: selectedUserId,
-        reason: "",
-        duration: "",
-      });
-    } catch (error) {
-      setError(error.message || "Error conectando con el servidor");
-    } finally {
-      setLoading(false);
-    }
-  };
+            <Card
+                className="p-4 shadow bg-success text-light"
+                style={{ width: '700px' }}
+            >
+                <Card.Body>
 
-  return (
-    <div className="d-flex justify-content-center mt-5">
-      <Card className="p-4 shadow bg-success text-light" style={{ width: "700px" }}>
-        <Card.Body>
-          <h2 className="text-center mb-4">Nuevo Ban</h2>
+                    <h2 className="text-center mb-4">
+                        Nuevo Ban
+                    </h2>
 
-          {error && <Alert variant="danger">{error}</Alert>}
-          {success && <Alert variant="success">{success}</Alert>}
+                    <Form onSubmit={handleSubmit}>
 
-          <Form onSubmit={handleSubmit}>
-            <FormGroup className="mb-3">
-              <Form.Label>Usuario a banear</Form.Label>
+                        <Row>
 
-              <Form.Control
-                type="text"
-                value={
-                  selectedUserId
-                    ? `${selectedUserName} (ID: ${selectedUserId})`
-                    : "No se seleccionó ningún usuario"
-                }
-                disabled
-              />
-            </FormGroup>
+                            <Col md={6}>
+                                <FormGroup className="mb-3">
 
-            <FormGroup className="mb-3">
-              <Form.Label>Administrador</Form.Label>
+                                    <Form.Label>ID Usuario</Form.Label>
 
-              <Form.Control
-                type="text"
-                value={
-                  user?.id
-                    ? `${user?.nombre || user?.nick || "Admin"} (ID: ${user.id})`
-                    : "Administrador logueado"
-                }
-                disabled
-              />
-            </FormGroup>
+                                    <Form.Control
+                                        type="number"
+                                        name="userId"
+                                        readOnly
+                                        value={formData.userId}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </FormGroup>
+                            </Col>
 
-            <FormGroup className="mb-3">
-              <Form.Label>Motivo</Form.Label>
+                            <Col md={6}>
+                                <FormGroup className="mb-3">
 
-              <Form.Control
-                type="text"
-                name="reason"
-                value={formData.reason}
-                onChange={handleChange}
-                required
-                placeholder="Ej: comportamiento ofensivo"
-              />
-            </FormGroup>
+                                    <Form.Label>ID Admin</Form.Label>
 
-            <FormGroup className="mb-4">
-              <Form.Label>Duración</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="adminId"
+                                        value={formData.adminId}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="Ingrese su ID"
+                                    />
+                                </FormGroup>
+                            </Col>
 
-              <Form.Control
-                type="number"
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                required
-                min="1"
-                placeholder="Cantidad de días"
-              />
-            </FormGroup>
+                        </Row>
 
-            <Row>
-              <Col md={6}>
-                <Button
-                  variant="danger"
-                  type="submit"
-                  className="w-100"
-                  disabled={loading || !selectedUserId}
-                >
-                  {loading ? "Baneando..." : "Banear"}
-                </Button>
-              </Col>
+                        <FormGroup className="mb-3">
 
-              <Col md={6}>
-                <Button
-                  variant="secondary"
-                  type="button"
-                  className="w-100"
-                  onClick={() => navigate(-1)}
-                >
-                  Cancelar
-                </Button>
-              </Col>
-            </Row>
-          </Form>
-        </Card.Body>
-      </Card>
-    </div>
-  );
+                            <Form.Label>Motivo</Form.Label>
+
+                            <Form.Control
+                                type="text"
+                                name="reason"
+                                value={formData.reason}
+                                onChange={handleChange}
+                                required
+                                placeholder="Ej: comportamiento ofensivo"
+                            />
+                        </FormGroup>
+
+                        <FormGroup className="mb-4">
+
+                            <Form.Label>Duración</Form.Label>
+
+                            <Form.Control
+                                type="number"
+                                name="duration"
+                                value={formData.duration}
+                                onChange={handleChange}
+                                required
+                                placeholder="Cantidad de días"
+                            />
+                        </FormGroup>
+
+                        <Row>
+
+                            <Col md={6}>
+                                <Button
+                                    variant='danger'
+                                    type='submit'
+                                    className="w-100"
+                                >
+                                    Banear
+                                </Button>
+                            </Col>
+
+                            <Col md={6}>
+                                <Button
+                                    variant='secondary'
+                                    type='button'
+                                    onClick={onClose}
+                                >
+                                    Cancelar
+                                </Button>
+                            </Col>
+
+                        </Row>
+
+                    </Form>
+
+                </Card.Body>
+            </Card>
+        </div>
+    );
 };
-
-export default NewBan;
+export default NewBan
