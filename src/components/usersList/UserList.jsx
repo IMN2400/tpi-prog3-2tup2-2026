@@ -5,15 +5,12 @@ import { Button, Card, Col, Form, FormGroup, Row, Modal, Table } from "react-boo
 
 
 const Users = () => {
+    const [showModal, setModal] = useState(false);
+    const [search, setSearch] = useState('');
 
-    const [showModal, setModal] = useState(false)
-    const [users, setUser] = useState([{
-        id: 1,
-        nombre: "Leandro",
-        correo: "test@test.com",
-        estado: "activo"
-    }]);
-/*
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [users, setUser] = useState([]);
+
     useEffect(() => {
         fetch("http://localhost:3000/persons")
             .then(res => res.json())
@@ -22,14 +19,48 @@ const Users = () => {
                 console.error(error)
             )
     }, [])
-*/
 
-    const handleBanClick = () => {
-        setModal(true)
-    } 
+    const openBanModal = (user) => {
 
+        setSelectedUser(user);
+        setModal(true);
+    };
+
+    const closeModal = () => {
+        setModal(false);
+        setSelectedUser(null);
+    };
+
+    const filteredUsers =
+    users.filter((user) => {
+
+        const text =
+            search.toLowerCase();
+
+        return (
+            user.id
+                .toString()
+                .includes(text)
+            ||
+            user.nombre
+                .toLowerCase()
+                .includes(text)
+            ||
+            user.correo
+                .toLowerCase()
+                .includes(text)
+        );
+    });
     return (
         <div>
+            <Form.Control
+    type="text"
+    placeholder="Buscar por ID, nombre o correo"
+    value={search}
+    onChange={(e) =>
+        setSearch(e.target.value)
+    }
+/>
             <Table>
                 <thead>
                     <tr>
@@ -41,26 +72,58 @@ const Users = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {users.map((item) => (
+                    {filteredUsers.map((item) => (
                         <tr key={item.id}>
                             <td>{item.id}</td>
                             <td>{item.nombre}</td>
                             <td>{item.correo}</td>
-                            <td>{item.estado}</td>
+                            <td
+                                className={
+                                    item.estado
+                                        ? "text-success fw-bold"
+                                        : "text-danger fw-bold"
+                                }
+                            >
+                                {item.estado
+                                    ? "Activo"
+                                    : "Baneado"}
+                            </td>
                             <td>
-                                <Button
-                                    variant="warning"
-                                    onClick={handleBanClick}>
-                                    Banear
-                                </Button>
+                                {item.estado && (
+                                    <Button
+                                        variant="warning"
+                                        onClick={() => openBanModal(item)}
+                                    >
+                                        Banear
+                                    </Button>
+                                )}
                             </td>
                         </tr>
 
                     ))}
                 </tbody>
             </Table>
+
+            <Modal
+                show={showModal}
+                onHide={closeModal}
+                centered
+            >
+
+                <Modal.Header
+                    closeButton
+                >
+                    <Modal.Title>
+                        Banear usuario
+                    </Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body>
+                    {selectedUser && (<NewBan userId={selectedUser.id} onClose={closeModal} />)}
+                </Modal.Body>
+
+            </Modal>
         </div>
-        
     )
 }
 

@@ -10,20 +10,29 @@ export const createBan = async (req, res) => {
                 message: 'Faltan datos obligatorios'
             });
         }
-/*
+
         const user = await Person.findByPk(userId);
         if (!user) {
             return res.status(404).json({
                 message: 'El usuario no existe'
             });
         }
-*/
+
         const newBan = await BanModel.create({
             userId,
             adminId,
             reason,
             duration,
             date: new Date()
+        });
+
+        const fechaDesbaneo = new Date();
+        fechaDesbaneo.setDate(fechaDesbaneo.getDate() + duration);
+
+        await user.update({
+            numeroBaneos: userId.numeroBaneos + 1,
+            fechaDesbaneo,
+            estado: false
         });
 
         res.status(201).json(newBan);
@@ -153,6 +162,21 @@ export const updateBan = async (req, res) => {
         }
 
         await ban.update(req.body);
+
+        const user = await Person.findByPk(ban.userId);
+        if (!user) {
+            return res.status(404).json({
+                message: 'El usuario no existe'
+            });
+        }
+
+        const fechaDesbaneo = new Date();
+
+        await user.update({
+            numeroBaneos: user.numeroBaneos - 1,
+            fechaDesbaneo,
+            estado: true
+        });
 
         res.status(200).json({
             message: 'Ban actualizado',

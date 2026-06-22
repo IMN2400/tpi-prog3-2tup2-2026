@@ -121,6 +121,7 @@ const Bans = () => {
                         <th>Motivo</th>
                         <th>Fecha de baneo</th>
                         <th>Duracion</th>
+                        <th>Estado</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,11 +143,13 @@ const Bans = () => {
                             </td>
                             <td>{item.estado} </td>
                             <td>
+                                {item.estado === "activo" &&(
                                 <button
                                     variant="warning"
                                     onClick={() => desban(item)}>
                                     Desbanear
                                 </button>
+                            )}
                             </td>
                         </tr>
                     ))}
