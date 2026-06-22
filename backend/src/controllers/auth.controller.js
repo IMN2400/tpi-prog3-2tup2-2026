@@ -1,8 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Person } from "../models/index.js";
-import BanModel from "../models/Bans.js";
-import { calculateBanTime } from "../helpers/ban.calculate.js";
 
 const JWT_SECRET = "clave_temporal";
 
@@ -79,34 +77,6 @@ export const loginUser = async (req, res) => {
     if (!passwordValida) {
       return res.status(401).json({
         message: "Contraseña incorrecta",
-      });
-    }
-
-    const activeBan = await BanModel.findOne({
-      where: {
-        userId: user.id,
-        estado: "activo",
-      },
-    });
-
-    if (activeBan) {
-      const banTime = calculateBanTime(
-        activeBan.date,
-        activeBan.duration
-      );
-
-      if (!banTime.isExpired) {
-        return res.status(403).json({
-          message: `Ha sido baneado, el ban se levantará en ${
-            banTime.remainingDays === 1
-              ? "1 día"
-              : `${banTime.remainingDays} días`
-          }.`,
-        });
-      }
-
-      await activeBan.update({
-        estado: "expirado",
       });
     }
 

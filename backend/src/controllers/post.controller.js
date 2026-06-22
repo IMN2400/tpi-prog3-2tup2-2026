@@ -142,82 +142,21 @@ export const deletearPost = async (req, res) => {
 }
 
 export const likesPost = async (req, res) => {
-  try {
-    const post = await models.Post.findByPk(req.params.id);
+    try {
+        const post = await models.Post.findByPk(req.params.id)
 
-    if (!post) {
-      return res.status(404).json({
-        error: "No se ha encontrado el post",
-      });
+        if (!post){
+            return res.status(404).json({error: "No se ha encontrado el post"})
+        }
+
+        post.likeCount += 1
+
+        await post.save()
+
+        res.json(post)
     }
-
-    const userId = req.user.id;
-    const postId = post.id;
-
-    const existingLike = await models.PostLike.findOne({
-      where: {
-        userId,
-        postId,
-      },
-    });
-
-    let likedByMe;
-
-    if (existingLike) {
-      await existingLike.destroy();
-      likedByMe = false;
-    } else {
-      await models.PostLike.create({
-        userId,
-        postId,
-      });
-
-      likedByMe = true;
+    catch (error) {
+        message: "Error al likear post"
+        res.status(500).json({error: error.message})
     }
-
-    const likeCount = await models.PostLike.count({
-      where: {
-        postId,
-      },
-    });
-
-    await post.update({
-      likeCount,
-    });
-
-    res.json({
-      likedByMe,
-      likeCount,
-    });
-  } catch (error) {
-    console.log("Error al actualizar like del post:", error);
-
-    res.status(500).json({
-      message: "Error al actualizar like del post",
-      error: error.message,
-    });
-  }
-};
-
-export const getMyPostLike = async (req, res) => {
-  try {
-    const postId = req.params.id;
-    const userId = req.user.id;
-
-    const like = await models.PostLike.findOne({
-      where: {
-        postId,
-        userId,
-      },
-    });
-
-    res.json({
-      likedByMe: !!like,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error al consultar el like del usuario",
-      error: error.message,
-    });
-  }
-};
+}

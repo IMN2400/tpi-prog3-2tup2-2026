@@ -3,7 +3,6 @@ import { Forum, Person, Post, Comment } from "../models/index.js";
 export const getForums = async (req, res) => {
   try {
     const forums = await Forum.findAll({
-      where: { estado: true },
       include: [
         {
           model: Person,
@@ -38,7 +37,7 @@ export const getForumById = async (req, res) => {
       },
 });
 
-    if (!forum || !forum.estado) {
+    if (!forum) {
       return res.status(404).json({
         message: "Foro no encontrado",
       });

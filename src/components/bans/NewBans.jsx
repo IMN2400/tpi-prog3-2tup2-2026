@@ -71,6 +71,7 @@ const NewBan = () => {
         },
         body: JSON.stringify({
           userId: Number(formData.userId),
+          adminId: Number(user?.id),
           reason: formData.reason.trim(),
           duration: Number(formData.duration),
         }),
@@ -127,7 +128,7 @@ const NewBan = () => {
                 type="text"
                 value={
                   user?.id
-                    ? `${user?.nombre || "Admin"} (ID: ${user.id})`
+                    ? `${user?.nombre || user?.nick || "Admin"} (ID: ${user.id})`
                     : "Administrador logueado"
                 }
                 disabled
