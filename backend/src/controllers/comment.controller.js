@@ -84,6 +84,19 @@ export const createComment = async (req, res) => {
       });
     }
 
+    const post = await models.Post.findOne({
+      where: {
+        id: postId,
+        status: true,
+      },
+    });
+
+    if (!post) {
+      return res.status(404).json({
+        message: "El post no existe o fue dado de baja",
+      });
+    }
+
     let parentId = null;
 
     if (parentCommentId) {
@@ -99,6 +112,7 @@ export const createComment = async (req, res) => {
         where: {
           id: parentId,
           postId,
+          status: true,
         },
       });
 
@@ -129,7 +143,12 @@ export const updateComment = async (req, res) => {
   try {
     const { text } = req.body;
 
-    const comment = await models.Comment.findByPk(req.params.id);
+    const comment = await models.Comment.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
+    });
 
     if (!comment) {
       return res.status(404).json({
@@ -166,67 +185,9 @@ export const updateComment = async (req, res) => {
 };
 
 
-const getNestedCommentIds = async (commentId) => {
-  const children = await models.Comment.findAll({
-    where: {
-      parentCommentId: commentId,
-    },
-  });
-
-  const ids = [];
-
-  for (const child of children) {
-    const nestedIds = await getNestedCommentIds(child.id);
-    ids.push(...nestedIds, child.id);
-  }
-
-  return ids;
-};
-
 export const deleteComment = async (req, res) => {
   try {
-    const loggedUser = req.user;
-
-    if (!loggedUser || !["ADMIN", "SYSADMIN"].includes(loggedUser.rol)) {
-      return res.status(403).json({
-        message: "Solo un ADMIN o SYSADMIN puede borrar comentarios",
-      });
-    }
-
-    const comment = await models.Comment.findOne({
-      where: {
-        id: req.params.id,
-        status: true,
-      },
-    });
-
-    if (!comment) {
-      return res.status(404).json({
-        message: "No se pudo encontrar el comentario",
-      });
-    }
-
-    const nestedCommentIds = await getNestedCommentIds(comment.id);
-    const idsToDelete = [...nestedCommentIds, comment.id];
-
-    const commentsToDelete = await models.Comment.findAll({
-      where: {
-        id: {
-          [Op.in]: idsToDelete,
-        },
-      },
-      include: [models.Person],
-    });
-
-    const hasSysAdminComment = commentsToDelete.some(
-      (comment) => comment.Person?.rol === "SYSADMIN"
-    );
-
-    if (loggedUser.rol === "ADMIN" && hasSysAdminComment) {
-      return res.status(403).json({
-        message: "No tienes permisos",
-      });
-    }
+    const idsToDelete = req.commentIdsToDelete || [req.comment.id];
 
     await models.Comment.update(
       {
@@ -255,7 +216,12 @@ export const deleteComment = async (req, res) => {
 
 export const likeComment = async (req, res) => {
   try {
-    const comment = await models.Comment.findByPk(req.params.id);
+    const comment = await models.Comment.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
+    });
 
     if (!comment) {
       return res.status(404).json({

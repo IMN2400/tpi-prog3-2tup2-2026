@@ -8,7 +8,7 @@ import {
   deleteComment,
   likeComment
 } from "../controllers/comment.controller.js";
-
+import { canDeleteComment } from "../middlewares/checkForumPermissions.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
 const router = Router();
@@ -20,7 +20,7 @@ router.get("/posts/:postId/comments", getCommentsByPost);
 router.post("/posts/:postId/comments", verifyToken, createComment);
 
 router.put("/comments/:id", verifyToken, updateComment);
-router.delete("/comments/:id", verifyToken, deleteComment);
+router.delete("/comments/:id", verifyToken, canDeleteComment, deleteComment);
 router.patch("/comments/:id/like", verifyToken, likeComment);
 
 export default router;

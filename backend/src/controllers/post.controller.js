@@ -169,7 +169,7 @@ export const deletearPost = async (req, res) => {
 
     if (req.user.rol === "ADMIN" && post.Person?.rol === "SYSADMIN") {
       return res.status(403).json({
-        message: "No tenés permisos para borrar un post de un SYSADMIN",
+        message: "No tenés permisos",
       });
     }
 
