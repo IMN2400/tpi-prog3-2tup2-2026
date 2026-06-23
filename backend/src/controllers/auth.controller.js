@@ -80,6 +80,28 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    if (user.estado === false) {
+      const hoy = new Date();
+      const fechaDesbaneo = new Date(user.fechaDesbaneo);
+
+      if (fechaDesbaneo > hoy) {
+        const diferencia = fechaDesbaneo - hoy;
+        const diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+
+        return res.status(403).json({
+          message: `Ha sido baneado, el ban se levantará en ${diasRestantes} día${
+            diasRestantes === 1 ? "" : "s"
+          }.`,
+          diasRestantes,
+        });
+      }
+
+      await user.update({
+        estado: true,
+        fechaDesbaneo: null,
+      });
+    }
+
     const token = jwt.sign(
       {
         id: user.id,

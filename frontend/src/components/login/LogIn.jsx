@@ -62,43 +62,44 @@ const LogIn = () => {
     setErrorGeneral("");
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+ const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    setErrorGeneral("");
+  setErrorGeneral("");
 
-    const isValid = validateForm();
+  const isValid = validateForm();
 
-    if (!isValid) {
+  if (!isValid) {
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(form),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setErrorGeneral(data.message || "Error al iniciar sesión");
       return;
     }
 
-    setLoading(true);
+    login(data.user, data.token);
 
-    try {
-      const response = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Error al iniciar sesión");
-      }
-
-      login(data.user, data.token);
-
-      navigate("/");
-    } catch (error) {
-      setErrorGeneral(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigate("/");
+  } catch (error) {
+    setErrorGeneral("Error al conectar con el servidor");
+  } finally {
+    setLoading(false);
+  }
+};
 
 return (
   <main className="login-page">
