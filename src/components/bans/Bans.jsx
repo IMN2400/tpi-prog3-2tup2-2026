@@ -82,7 +82,7 @@ const Bans = () => {
                     },
                     body: JSON.stringify({
                         duration: newDuration,
-                        estado: 'desbanneado'
+                        estado: 'desbaneado'
                     })
                 }
             );
@@ -141,7 +141,9 @@ const Bans = () => {
                                     item.duration
                                 )})
                             </td>
-                            <td>{item.estado} </td>
+                            <td>
+                                {item.estado === "desbanneado" ? "desbaneado" : item.estado}
+                             </td>
                             <td>
                                 {item.estado === "activo" &&(
                                 <button

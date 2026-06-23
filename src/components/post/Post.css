@@ -583,3 +583,12 @@
   border-color: rgba(180, 133, 0, 0.32);
   color: #8a6500;
 }
+
+.delete-comment-text-button {
+  color: #b42318 !important;
+}
+
+.delete-comment-text-button:hover {
+  color: #7a271a !important;
+  text-decoration: underline;
+}

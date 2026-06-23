@@ -8,6 +8,21 @@ import { formatBodyText } from "../../services/imgUtils/imgUtils";
 
 const API_URL = "http://localhost:3000";
 
+const readJsonResponse = async (response) => {
+  const text = await response.text();
+
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    throw new Error(
+      `El servidor no devolvió JSON (${response.status}). Respuesta: ${text.slice(
+        0,
+        100
+      )}`
+    );
+  }
+};
+
 const Post = ({ postId }) => {
   const { token, user, isAdmin, isSysAdmin } = useAuth();
   const { requireAuth } = useRequireAuth();
@@ -138,9 +153,7 @@ const Post = ({ postId }) => {
   const handleMakeAdmin = (targetUser) => {
     requireAuth(async () => {
       const confirmed = window.confirm(
-        `¿Querés convertir a ${
-          targetUser.nombre || "este usuario"
-        } en ADMIN?`
+        `¿Querés convertir a ${targetUser.nombre || "este usuario"} en ADMIN?`
       );
 
       if (!confirmed) {
@@ -160,7 +173,7 @@ const Post = ({ postId }) => {
           }
         );
 
-        const data = await response.json();
+        const data = await readJsonResponse(response);
 
         if (!response.ok) {
           throw new Error(
@@ -183,7 +196,7 @@ const Post = ({ postId }) => {
       setError("");
 
       const postResponse = await fetch(`${API_URL}/posts/${postId}`);
-      const postData = await postResponse.json();
+      const postData = await readJsonResponse(postResponse);
 
       if (!postResponse.ok) {
         throw new Error(postData.message || "No se pudo cargar el post");
@@ -192,7 +205,7 @@ const Post = ({ postId }) => {
       setPost(postData);
 
       const commentsResponse = await fetch(`${API_URL}/posts/${postId}/comments`);
-      const commentsData = await commentsResponse.json();
+      const commentsData = await readJsonResponse(commentsResponse);
 
       if (!commentsResponse.ok) {
         throw new Error(
@@ -202,21 +215,7 @@ const Post = ({ postId }) => {
 
       setComments(commentsData);
 
-      if (token) {
-        const myLikeResponse = await fetch(`${API_URL}/posts/${postId}/my-like`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const myLikeData = await myLikeResponse.json();
-
-        if (myLikeResponse.ok) {
-          setLikedByMe(myLikeData.likedByMe);
-        }
-      } else {
-        setLikedByMe(false);
-      }
+      setLikedByMe(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -226,7 +225,7 @@ const Post = ({ postId }) => {
 
   useEffect(() => {
     loadData();
-  }, [postId, token]);
+  }, [postId]);
 
   const formatDate = (date) => {
     if (!date) {
@@ -363,7 +362,7 @@ const Post = ({ postId }) => {
           }),
         });
 
-        const data = await response.json();
+        const data = await readJsonResponse(response);
 
         if (!response.ok) {
           throw new Error(
@@ -427,7 +426,7 @@ const Post = ({ postId }) => {
         },
       });
 
-      const data = await response.json();
+      const data = await readJsonResponse(response);
 
       if (!response.ok) {
         throw new Error(data.message || "No se pudo borrar el post");
@@ -464,7 +463,7 @@ const Post = ({ postId }) => {
           },
         });
 
-        const data = await response.json();
+        const data = await readJsonResponse(response);
 
         if (!response.ok) {
           throw new Error(
@@ -472,11 +471,14 @@ const Post = ({ postId }) => {
           );
         }
 
-        setLikedByMe(data.likedByMe);
+        setLikedByMe(true);
 
         setPost((prevPost) => ({
           ...prevPost,
-          likeCount: data.likeCount,
+          likeCount:
+            data?.likeCount ??
+            data?.post?.likeCount ??
+            (prevPost?.likeCount || 0) + 1,
         }));
       } catch (err) {
         setError(err.message);
@@ -510,7 +512,7 @@ const Post = ({ postId }) => {
           }),
         });
 
-        const data = await response.json();
+        const data = await readJsonResponse(response);
 
         if (!response.ok) {
           throw new Error(data.message || "No se pudo crear el comentario");
@@ -551,7 +553,7 @@ const Post = ({ postId }) => {
           }),
         });
 
-        const data = await response.json();
+        const data = await readJsonResponse(response);
 
         if (!response.ok) {
           throw new Error(data.message || "No se pudo crear la respuesta");
@@ -628,7 +630,7 @@ const Post = ({ postId }) => {
         },
       });
 
-      const data = await response.json();
+      const data = await readJsonResponse(response);
 
       if (!response.ok) {
         throw new Error(data.message || "No se pudo borrar el comentario");
@@ -700,7 +702,7 @@ const Post = ({ postId }) => {
           }),
         });
 
-        const data = await response.json();
+        const data = await readJsonResponse(response);
 
         if (!response.ok) {
           throw new Error(
@@ -779,24 +781,6 @@ const Post = ({ postId }) => {
                 {formatDate(comment.postDate || comment.createdAt)}
               </span>
 
-              {canDeleteComments() && (
-                <button
-                  type="button"
-                  className="delete-comment-icon"
-                  onClick={() => handleOpenDeleteCommentModal(comment)}
-                  title="Borrar comentario"
-                  aria-label="Borrar comentario"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="delete-comment-svg"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 3h6l1 2h4v2H4V5h4l1-2Z" />
-                    <path d="M6 9h12l-1 12H7L6 9Zm4 2v8h2v-8h-2Zm4 0v8h2v-8h-2Z" />
-                  </svg>
-                </button>
-              )}
             </div>
 
             {editingCommentId === comment.id ? (
@@ -866,6 +850,16 @@ const Post = ({ postId }) => {
                   onClick={() => handleStartEditComment(comment)}
                 >
                   Editar
+                </button>
+              )}
+
+              {canDeleteComments() && (
+                <button
+                  type="button"
+                  className="delete-comment-text-button"
+                  onClick={() => handleOpenDeleteCommentModal(comment)}
+                >
+                  Borrar
                 </button>
               )}
             </div>
@@ -1066,11 +1060,7 @@ const Post = ({ postId }) => {
                 />
               </Form.Group>
 
-              {editPostError && (
-                <Alert variant="danger">
-                  {editPostError}
-                </Alert>
-              )}
+              {editPostError && <Alert variant="danger">{editPostError}</Alert>}
 
               <div className="thread-reply-actions">
                 <Button type="submit" disabled={editPostLoading}>
@@ -1103,11 +1093,11 @@ const Post = ({ postId }) => {
             <button
               type="button"
               onClick={handleLikePost}
-              disabled={likeLoading}
+              disabled={likeLoading || likedByMe}
               className={`post-like-button ${
                 likedByMe ? "post-like-active" : ""
               }`}
-              aria-label={likedByMe ? "Quitar me gusta" : "Dar me gusta"}
+              aria-label={likedByMe ? "Ya diste me gusta" : "Dar me gusta"}
             >
               <svg
                 className="post-like-icon"
@@ -1206,9 +1196,7 @@ const Post = ({ postId }) => {
           </Modal.Header>
 
           <Modal.Body>
-            <p className="mb-2">
-              ¿Estás seguro que deseás borrar este post?
-            </p>
+            <p className="mb-2">¿Estás seguro que deseás borrar este post?</p>
 
             {deletePostError && (
               <Alert variant="danger" className="mt-3 mb-0">
