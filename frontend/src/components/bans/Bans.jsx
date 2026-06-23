@@ -53,7 +53,7 @@ const Bans = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          estado: "desbanneado",
+          estado: "desbaneado",
         }),
       });
 
@@ -68,7 +68,7 @@ const Bans = () => {
           item.id === ban.id
             ? {
                 ...item,
-                estado: "desbanneado",
+                estado: "desbaneado",
               }
             : item
         )
@@ -123,15 +123,19 @@ const Bans = () => {
               <td>{item.estado}</td>
 
               <td>
-                <Button
-                  variant="warning"
-                  size="sm"
-                  onClick={() => desban(item)}
-                  disabled={item.estado !== "activo" || banLoadingId === item.id}
-                >
-                  {banLoadingId === item.id ? "Desbaneando..." : "Desbanear"}
-                </Button>
-              </td>
+                {item.estado === "activo" ? (
+                    <Button
+                    variant="warning"
+                    size="sm"
+                    onClick={() => desban(item)}
+                    disabled={banLoadingId === item.id}
+                    >
+                    {banLoadingId === item.id ? "Desbaneando..." : "Desbanear"}
+                    </Button>
+                ) : (
+                    <span className="text-muted">Sin acción</span>
+                )}
+                </td>
             </tr>
           ))}
         </tbody>

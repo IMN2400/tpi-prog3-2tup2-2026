@@ -30,10 +30,10 @@ export const createBan = async (req, res) => {
         fechaDesbaneo.setDate(fechaDesbaneo.getDate() + duration);
 
         await user.update({
-            numeroBaneos: userId.numeroBaneos + 1,
+            numeroBaneos: (user.numeroBaneos || 0) + 1,
             fechaDesbaneo,
-            estado: false
-        });
+            estado: false,
+            });
 
         res.status(201).json(newBan);
 
@@ -47,47 +47,45 @@ export const createBan = async (req, res) => {
 
 
 export const getBans = async (req, res) => {
-    try {
-        const bans = await BanModel.findAll();
+  try {
+    const bans = await BanModel.findAll();
 
-        const today =
-            new Date();
+    const today = new Date();
 
-        for (const ban of bans) {
+    for (const ban of bans) {
+      const banDate = new Date(ban.date);
+      const expirationDate = new Date(banDate);
 
-            const banDate =
-                new Date(ban.date);
+      expirationDate.setDate(expirationDate.getDate() + ban.duration);
 
-            const expirationDate =
-                new Date(banDate);
-
-            expirationDate.setDate(
-                expirationDate.getDate()
-                + ban.duration
-            );
-
-            if (
-                expirationDate < today &&
-                ban.estado === 'activo'
-            ) {
-
-                await ban.update({
-                    estado: 'expirado'
-                });
-            }
-        }
-
-        const updatedBans =
-            await BanModel.findAll();
-
-        res.json(updatedBans);
-
-    } catch (error) {
-        res.status(500).json({
-            message: 'Error al obtener bans',
-            error: error.message
-        });
+      if (expirationDate < today && ban.estado === "activo") {
+        await ban.update({ estado: "expirado" });
+      }
     }
+
+    const updatedBans = await BanModel.findAll({
+      include: [
+        {
+          model: Person,
+          as: "bannedUser",
+          attributes: ["id", "nombre", "correo"],
+        },
+        {
+          model: Person,
+          as: "adminUser",
+          attributes: ["id", "nombre", "correo"],
+        },
+      ],
+      order: [["date", "DESC"]],
+    });
+
+    res.json(updatedBans);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al obtener bans",
+      error: error.message,
+    });
+  }
 };
 
 

@@ -2,6 +2,7 @@ import { Person } from "./Person.js";
 import { Forum } from "./Forum.js";
 import { Post } from "./Post.js";
 import { Comment } from "./Comment.js";
+import BanModel from "./Bans.js";
 
 // Relaciones Person - Forum
 Person.hasMany(Forum, {
@@ -47,12 +48,33 @@ Post.belongsTo(Forum, {
   foreignKey: "forumId",
 });
 
+Person.hasMany(BanModel, {
+  foreignKey: "userId",
+  as: "bansRecibidos",
+});
+
+BanModel.belongsTo(Person, {
+  foreignKey: "userId",
+  as: "bannedUser",
+});
+
+Person.hasMany(BanModel, {
+  foreignKey: "adminId",
+  as: "bansCreados",
+});
+
+BanModel.belongsTo(Person, {
+  foreignKey: "adminId",
+  as: "adminUser",
+});
+
 const models = {
   Person,
   Forum,
   Post,
-  Comment
+  Comment,
+  BanModel,
 };
 
-export { Person, Forum, Post, Comment};
+export { Person, Forum, Post, Comment, BanModel};
 export default models;

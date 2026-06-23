@@ -70,10 +70,11 @@ const NewBan = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId: Number(formData.userId),
-          reason: formData.reason.trim(),
-          duration: Number(formData.duration),
-        }),
+        userId: Number(formData.userId),
+        adminId: Number(user.id),
+        reason: formData.reason.trim(),
+        duration: Number(formData.duration),
+      }),
       });
 
       const data = await response.json();
@@ -89,6 +90,8 @@ const NewBan = () => {
         reason: "",
         duration: "",
       });
+      navigate("/main");
+
     } catch (error) {
       setError(error.message || "Error conectando con el servidor");
     } finally {
