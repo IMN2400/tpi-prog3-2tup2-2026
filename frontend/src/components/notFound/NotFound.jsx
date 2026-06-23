@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import img1 from '../../assets/notFound/img1.jpg';
 import gif1 from '../../assets/notFound/gif1.gif'
 import img2 from '../../assets/notFound/img2.jpg'
-const images = [img1, gif1, img2];
+import img3 from '../../assets/notFound/img3.png'
+const images = [img1, gif1, img2, img3];
 
 const messages = [
     "Te perdiste 👀",
@@ -14,8 +15,9 @@ const messages = [
     "Este no es el foro que buscabas",
     "Ups... rompiste el internet (no realmente)",
     "¡Mirá dónde te viniste a meter!",
-    "Te soy sincero... no tengo idea de como hiciste para terminar acá."
+    "Te soy sincero... no tengo idea de como hiciste para terminar acá. Felicitaciones, che."
 ];
+
 
 const randomMessage = messages[Math.floor(Math.random() * messages.length)];
 const NotFound = () => {
