@@ -100,6 +100,7 @@ const NavBar = () => {
               <>
                 <DropdownButton
                   align="end"
+                  variant="success"
                   className="app-navbar-username app-navbar-dropdown"
                   title={user?.nombre || "Usuario"}
                 >
