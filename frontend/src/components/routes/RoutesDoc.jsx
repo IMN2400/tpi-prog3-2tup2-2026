@@ -8,7 +8,7 @@ import Protected from "../protected/Protected";
 import MainPage from "../main_page/MainPage";
 import LogIn from "../login/LogIn";
 import Register from "../register/Register";
-import NotFound from "../notfound/NotFound";
+import NotFound from "../notFound/NotFound";
 
 import ForumListPage from "../ForumListPage/ForumListPage";
 import ForumPage from "../forumPage/ForumPage";
