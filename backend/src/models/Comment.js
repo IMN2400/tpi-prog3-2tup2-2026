@@ -21,7 +21,13 @@ export const Comment = sequelize.define (
          postId: {
             type: DataTypes.INTEGER,
             allowNull: false,
-  },
+        },
+        
+        parentCommentId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        },  
+
         likeCount: {
             type: DataTypes.INTEGER,
             allowNull: false,
