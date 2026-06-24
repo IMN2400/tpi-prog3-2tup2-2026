@@ -7,7 +7,6 @@ const Register = () => {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    nick: "",
     nombre: "",
     correo: "",
     edad: "",
@@ -16,7 +15,6 @@ const Register = () => {
   });
 
   const [errors, setErrors] = useState({
-    nick: "",
     nombre: "",
     correo: "",
     edad: "",
@@ -30,7 +28,6 @@ const Register = () => {
 
   const validateForm = () => {
     const newErrors = {
-      nick: "",
       nombre: "",
       correo: "",
       edad: "",
@@ -40,11 +37,6 @@ const Register = () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!form.nick.trim()) {
-      newErrors.nick = "El nick es obligatorio";
-    } else if (form.nick.trim().length < 3) {
-      newErrors.nick = "El nick debe tener al menos 3 caracteres";
-    }
 
     if (!form.nombre.trim()) {
       newErrors.nombre = "El nombre es obligatorio";
@@ -79,7 +71,6 @@ const Register = () => {
     setErrors(newErrors);
 
     return (
-      !newErrors.nick &&
       !newErrors.nombre &&
       !newErrors.correo &&
       !newErrors.edad &&
@@ -126,7 +117,6 @@ const Register = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nick: form.nick,
           nombre: form.nombre,
           correo: form.correo,
           edad: Number(form.edad),
@@ -182,22 +172,6 @@ const Register = () => {
                 )}
 
                 <Form onSubmit={handleSubmit} noValidate>
-                  <Form.Group className="mb-3" controlId="nick">
-                    <Form.Label className="login-label">Nick</Form.Label>
-                    <Form.Control
-                      className="login-input"
-                      type="text"
-                      name="nick"
-                      value={form.nick}
-                      onChange={handleChange}
-                      placeholder="Ej: Juan123"
-                      autoComplete="username"
-                      isInvalid={!!errors.nick}
-                    />
-                    <Form.Control.Feedback type="invalid" className="login-error">
-                      {errors.nick}
-                    </Form.Control.Feedback>
-                  </Form.Group>
 
                   <Form.Group className="mb-3" controlId="nombre">
                     <Form.Label className="login-label">Nombre</Form.Label>
