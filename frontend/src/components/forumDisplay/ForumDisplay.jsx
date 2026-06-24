@@ -4,11 +4,12 @@ import { useAuth } from "../../context/AuthContext";
 import "./forumDisplay.css";
 import { useState } from "react";
 
+
 //Recibe por prop un foro mapeado por forum(padre) y lo renderiza visualmente
 const ForumDisplay = ({ forum }) => {
   const navigate = useNavigate();
 
-  const { token, isSysAdmin, isAuthenticated } = useAuth();
+  const { token, isAdmin, isAuthenticated } = useAuth();
 
   const { id, nombre, descripcion, estado } = forum;
 
@@ -27,7 +28,7 @@ const ForumDisplay = ({ forum }) => {
   };
 
   // Verificación de que el usuario tenga los permisos necesarios.
-  const canDeleteForum = isSysAdmin && isAuthenticated;
+  const canDeleteForum = isAuthenticated && isAdmin;
 
   // Esta función abre el modal para eliminar foros...
   const handleOpenDeleteForumModal = () => {
@@ -124,7 +125,11 @@ const ForumDisplay = ({ forum }) => {
 
         <Modal.Body>
           <p className="mb-2">
-            ¿Estás seguro que deseás borrar este foro?
+            ¿Estás seguro que deseás eliminar este foro?
+          </p>
+
+          <p className="mb-0 text-muted">
+            Esta acción dará de baja el foro junto con todos sus posts y comentarios.
           </p>
 
           {deleteForumError && (

@@ -1,8 +1,13 @@
 import { Forum, Person, Post, Comment } from "../models/index.js";
+import { Op } from "sequelize";
+import { sequelize } from "../config/database.js";
 
 export const getForums = async (req, res) => {
   try {
     const forums = await Forum.findAll({
+      where: {
+        estado: true,
+      },
       include: [
         {
           model: Person,
@@ -30,12 +35,16 @@ export const getForumById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const forum = await Forum.findByPk(id, {
+    const forum = await Forum.findOne({
+      where: {
+        id,
+        estado: true,
+      },
       include: {
         model: Person,
         attributes: ["id", "nombre", "correo", "rol"],
       },
-});
+    });
 
     if (!forum) {
       return res.status(404).json({
@@ -107,25 +116,85 @@ export const updateForum = async (req, res) => {
 };
 
 export const deleteForum = async (req, res) => {
+  const transaction = await sequelize.transaction();
+
   try {
     const { id } = req.params;
 
-    const forum = await Forum.findByPk(id);
+    const forum = await Forum.findOne({
+      where: {
+        id,
+        estado: true,
+      },
+      transaction,
+    });
 
     if (!forum) {
+      await transaction.rollback();
+
       return res.status(404).json({
         message: "Foro no encontrado",
       });
     }
 
-    await forum.update({
-      estado: false,
+    const posts = await Post.findAll({
+      where: {
+        forumId: id,
+      },
+      attributes: ["id"],
+      transaction,
     });
 
+    const postIds = posts.map((post) => post.id);
+
+    if (postIds.length > 0) {
+      await Comment.update(
+        {
+          status: false,
+        },
+        {
+          where: {
+            postId: {
+              [Op.in]: postIds,
+            },
+          },
+          transaction,
+        }
+      );
+
+      await Post.update(
+        {
+          status: false,
+        },
+        {
+          where: {
+            id: {
+              [Op.in]: postIds,
+            },
+          },
+          transaction,
+        }
+      );
+    }
+
+    await forum.update(
+      {
+        estado: false,
+      },
+      {
+        transaction,
+      }
+    );
+
+    await transaction.commit();
+
     res.json({
-      message: "Foro dado de baja correctamente",
+      message: "Foro dado de baja correctamente junto con su contenido",
+      deletedPosts: postIds.length,
     });
   } catch (error) {
+    await transaction.rollback();
+
     res.status(500).json({
       message: "Error al dar de baja el foro",
       error: error.message,
