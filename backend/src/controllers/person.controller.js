@@ -22,7 +22,7 @@ export const getPersonById = async (req, res) => {
     const person = await Person.findByPk(id, {
       where: {
         id,
-        estado: true,
+        status: true,
       },
       attributes: { exclude: ["password"] },
     });
@@ -44,14 +44,14 @@ export const getPersonById = async (req, res) => {
 
 export const createPerson = async (req, res) => {
   try {
-    const { nombre, edad, correo, password, rol } = req.body;
+    const { name, age, email, password, role } = req.body;
 
     const newPerson = await Person.create({
-      nombre,
-      edad,
-      correo,
+      name,
+      age,
+      email,
       password,
-      rol,
+      role,
     });
 
     const personResponse = newPerson.toJSON();
@@ -69,7 +69,7 @@ export const createPerson = async (req, res) => {
 export const updatePerson = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, edad, correo, password, rol, estado } = req.body;
+    const { name, age, email, password, role, status } = req.body;
 
     const person = await Person.findByPk(id);
 
@@ -81,12 +81,12 @@ export const updatePerson = async (req, res) => {
     
     const dataToUpdate = {};
 
-    if (nombre !== undefined) dataToUpdate.nombre = nombre;
-    if (edad !== undefined) dataToUpdate.edad = edad;
-    if (correo !== undefined) dataToUpdate.correo = correo;
+    if (name !== undefined) dataToUpdate.name = name;
+    if (age !== undefined) dataToUpdate.age = age;
+    if (email !== undefined) dataToUpdate.email = email;
     if (password !== undefined) dataToUpdate.password = password;
-    if (estado !== undefined) dataToUpdate.estado = estado;
-    if (rol !== undefined) dataToUpdate.rol = rol;
+    if (status !== undefined) dataToUpdate.status = status;
+    if (role !== undefined) dataToUpdate.role = role;
 
     await person.update(dataToUpdate);
 
@@ -118,20 +118,20 @@ export const makeAdmin = async (req, res) => {
       });
     }
 
-    if (person.rol === "SYSADMIN") {
+    if (person.role === "SYSADMIN") {
       return res.status(400).json({
         message: "No se puede modificar el rol de un SYSADMIN",
       });
     }
 
-    if (person.rol === "ADMIN") {
+    if (person.role === "ADMIN") {
       return res.json({
         message: "El usuario ya es ADMIN",
       });
     }
 
     await person.update({
-      rol: "ADMIN",
+      role: "ADMIN",
     });
 
     const personResponse = person.toJSON();
@@ -161,9 +161,7 @@ export const deletePerson = async (req, res) => {
       });
     }
 
-    await person.update({
-      estado: false,
-    });
+    await person.destroy();
 
     res.json({
       message: "Usuario dado de baja correctamente",

@@ -1,23 +1,21 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Person } from "../models/index.js";
-import BanModel from "../models/Bans.js";
-import { calculateBanTime } from "../helpers/ban.calculate.js";
 
 const JWT_SECRET = "clave_temporal";
 
 export const registerUser = async (req, res) => {
   try {
-    const { nombre, edad, correo, password } = req.body;
+    const { name, age, email, password } = req.body;
 
-    if (!nombre || !edad || !correo || !password) {
+    if (!name || !age || !email || !password) {
       return res.status(400).json({
         message: "Todos los campos son obligatorios",
       });
     }
 
     const existingUser = await Person.findOne({
-      where: { correo },
+      where: { email },
     });
 
     if (existingUser) {
@@ -29,21 +27,21 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await Person.create({
-      nombre,
-      edad,
-      correo,
+      name,
+      age,
+      email,
       password: hashedPassword,
-      rol: "USER",
+      role: "USER",
     });
 
     res.status(201).json({
       message: "Usuario registrado correctamente",
       user: {
         id: newUser.id,
-        nombre: newUser.nombre,
-        edad: newUser.edad,
-        correo: newUser.correo,
-        rol: newUser.rol,
+        name: newUser.name,
+        age: newUser.age,
+        email: newUser.email,
+        role: newUser.role,
       },
     });
   } catch (error) {
@@ -56,16 +54,16 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    const { correo, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!correo || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         message: "Correo y contraseña son obligatorios",
       });
     }
 
     const user = await Person.findOne({
-      where: { correo },
+      where: { email },
     });
 
     if (!user) {
@@ -82,40 +80,34 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const activeBan = await BanModel.findOne({
-      where: {
-        userId: user.id,
-        estado: "activo",
-      },
-    });
+    if (user.status === false) {
+      const hoy = new Date();
+      const dateBanLifted = new Date(user.dateBanLifted);
 
-    if (activeBan) {
-      const banTime = calculateBanTime(
-        activeBan.date,
-        activeBan.duration
-      );
+      if (dateBanLifted > hoy) {
+        const diferencia = dateBanLifted - hoy;
+        const diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
 
-      if (!banTime.isExpired) {
         return res.status(403).json({
-          message: `Ha sido baneado, el ban se levantará en ${
-            banTime.remainingDays === 1
-              ? "1 día"
-              : `${banTime.remainingDays} días`
+          message: `Ha sido baneado, el ban se levantará en ${diasRestantes} día${
+            diasRestantes === 1 ? "" : "s"
           }.`,
+          diasRestantes,
         });
       }
 
-      await activeBan.update({
-        estado: "expirado",
+      await user.update({
+        status: true,
+        dateBanLifted: null,
       });
     }
 
     const token = jwt.sign(
       {
         id: user.id,
-        nombre: user.nombre,
-        correo: user.correo,
-        rol: user.rol,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       },
       JWT_SECRET,
       {
@@ -128,9 +120,9 @@ export const loginUser = async (req, res) => {
       token,
       user: {
         id: user.id,
-        nombre: user.nombre,
-        correo: user.correo,
-        rol: user.rol,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
