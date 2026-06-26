@@ -12,12 +12,12 @@ export const canManagePersons = async (req, res, next) => {
     }
 
     // SYSADMIN puede hacer todo
-    if (loggedUser.rol === "SYSADMIN") {
+    if (loggedUser.role === "SYSADMIN") {
       return next();
     }
 
     // ADMIN puede administrar usuarios, pero no SYSADMIN
-    if (loggedUser.rol === "ADMIN") {
+    if (loggedUser.role === "ADMIN") {
       const targetUser = await Person.findByPk(targetUserId);
 
       if (!targetUser) {
@@ -26,7 +26,7 @@ export const canManagePersons = async (req, res, next) => {
         });
       }
 
-      if (targetUser.rol === "SYSADMIN") {
+      if (targetUser.role === "SYSADMIN") {
         return res.status(403).json({
           message: "No puedes modificar un Administrador",
         });
@@ -36,7 +36,7 @@ export const canManagePersons = async (req, res, next) => {
     }
 
     // USER solo puede modificarse a sí mismo
-    if (loggedUser.rol === "USER") {
+    if (loggedUser.role === "USER") {
       if (loggedUser.id !== targetUserId) {
         return res.status(403).json({
           message: "No tienes permisos para realizar la accion",
@@ -44,7 +44,7 @@ export const canManagePersons = async (req, res, next) => {
       }
 
       // USER no puede cambiar su rol
-      if (req.body?.rol !== undefined) {
+      if (req.body?.role !== undefined) {
         return res.status(403).json({
           message: "No podés modificar tu rol",
         });
@@ -74,7 +74,7 @@ export const onlySysAdmin = (req, res, next) => {
     });
   }
 
-  if (loggedUser.rol !== "SYSADMIN") {
+  if (loggedUser.role !== "SYSADMIN") {
     return res.status(403).json({
       message: "Solo un SYSADMIN puede realizar esta acción",
     });

@@ -78,7 +78,7 @@ const Post = ({ postId }) => {
       return false;
     }
 
-    if (!isSysAdmin && targetUser?.rol === "SYSADMIN") {
+    if (!isSysAdmin && targetUser?.role === "SYSADMIN") {
       return false;
     }
 
@@ -98,7 +98,7 @@ const Post = ({ postId }) => {
       return false;
     }
 
-    if (targetUser.rol && targetUser.rol !== "USER") {
+    if (targetUser.role && targetUser.role !== "USER") {
       return false;
     }
 
@@ -114,7 +114,7 @@ const Post = ({ postId }) => {
       return true;
     }
 
-    if (isAdmin && post?.Person?.rol !== "SYSADMIN") {
+    if (isAdmin && post?.Person?.role !== "SYSADMIN") {
       return true;
     }
 
@@ -730,7 +730,7 @@ const Post = ({ postId }) => {
 
   const renderCommentNode = (comment, level = 0) => {
     const author = comment.Person?.name || "Usuario";
-    const role = comment.Person?.rol;
+    const role = comment.Person?.role;
     const children = comment.children || [];
     const isExpanded = !!expandedThreads[comment.id];
 
@@ -973,7 +973,7 @@ const Post = ({ postId }) => {
   }
 
   const authorName = post.Person?.name || "Usuario";
-  const authorRole = post.Person?.rol;
+  const authorRole = post.Person?.role;
   const forumName = post.Forum?.name || "Foro";
   const forumId = post.Forum?.id || post.forumId;
 

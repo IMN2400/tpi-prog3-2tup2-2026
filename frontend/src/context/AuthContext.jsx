@@ -30,10 +30,10 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!token;
 
-  // verifica que el usuario tenga rol de admin o sysadmin
-  const isAdmin = user?.rol === "ADMIN" || user?.rol === "SYSADMIN";
+  // verifica que el usuario tenga role de admin o sysadmin
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SYSADMIN";
 
-  const isSysAdmin = user?.rol === "SYSADMIN";
+  const isSysAdmin = user?.role === "SYSADMIN";
 
   return (
     <AuthContext.Provider

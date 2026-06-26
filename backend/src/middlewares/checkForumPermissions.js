@@ -25,7 +25,7 @@ export const onlyAdminOrSysadmin = async (req, res, next) => {
       });
     }
 
-    if (person.rol !== "ADMIN" && person.rol !== "SYSADMIN") {
+    if (person.role !== "ADMIN" && person.role !== "SYSADMIN") {
       return res.status(403).json({
         message: "No tenés permisos para realizar esta acción",
       });
@@ -65,7 +65,7 @@ export const onlySysadmin = async (req, res, next) => {
       });
     }
 
-    if (person.rol !== "SYSADMIN") {
+    if (person.role !== "SYSADMIN") {
       return res.status(403).json({
         message: "No tenés permisos para realizar esta acción",
       });
@@ -132,8 +132,8 @@ export const canDeleteComment = async (req, res, next) => {
     }
 
     const isOwner = Number(comment.userId) === Number(person.id);
-    const isAdmin = person.rol === "ADMIN";
-    const isSysAdmin = person.rol === "SYSADMIN";
+    const isAdmin = person.role === "ADMIN";
+    const isSysAdmin = person.role === "SYSADMIN";
 
     if (!isOwner && !isAdmin && !isSysAdmin) {
       return res.status(403).json({
@@ -141,7 +141,7 @@ export const canDeleteComment = async (req, res, next) => {
       });
     }
 
-    if (isAdmin && comment.Person?.rol === "SYSADMIN" && !isOwner) {
+    if (isAdmin && comment.Person?.role === "SYSADMIN" && !isOwner) {
       return res.status(403).json({
         message: "No tenés permisos para borrar comentarios de un SYSADMIN",
       });
@@ -163,7 +163,7 @@ export const canDeleteComment = async (req, res, next) => {
       });
 
       const hasSysAdminComment = commentsToDelete.some(
-        (comment) => comment.Person?.rol === "SYSADMIN"
+        (comment) => comment.Person?.role === "SYSADMIN"
       );
 
       if (isAdmin && hasSysAdminComment) {

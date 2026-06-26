@@ -31,7 +31,7 @@ export const registerUser = async (req, res) => {
       age,
       email,
       password: hashedPassword,
-      rol: "USER",
+      role: "USER",
     });
 
     res.status(201).json({
@@ -41,7 +41,7 @@ export const registerUser = async (req, res) => {
         name: newUser.name,
         age: newUser.age,
         email: newUser.email,
-        rol: newUser.rol,
+        role: newUser.role,
       },
     });
   } catch (error) {
@@ -107,7 +107,7 @@ export const loginUser = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        rol: user.rol,
+        role: user.role,
       },
       JWT_SECRET,
       {
@@ -122,7 +122,7 @@ export const loginUser = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        rol: user.rol,
+        role: user.role,
       },
     });
   } catch (error) {

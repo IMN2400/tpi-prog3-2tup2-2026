@@ -6,7 +6,7 @@ export const getForums = async (req, res) => {
       include: [
         {
           model: Person,
-          attributes: ["id", "name", "email", "rol"],
+          attributes: ["id", "name", "email", "role"],
         },
         {
           model: Post,
@@ -33,7 +33,7 @@ export const getForumById = async (req, res) => {
     const forum = await Forum.findByPk(id, {
       include: {
         model: Person,
-        attributes: ["id", "name", "email", "rol"],
+        attributes: ["id", "name", "email", "role"],
       },
 });
 

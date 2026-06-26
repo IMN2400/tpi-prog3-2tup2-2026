@@ -19,7 +19,7 @@ const NewForum = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
-  const isAdmin = user?.rol === "ADMIN" || user?.rol === "SYSADMIN";
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SYSADMIN";
 
   const handleChange = (event) => {
     setForm({

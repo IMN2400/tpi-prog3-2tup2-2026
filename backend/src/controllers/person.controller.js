@@ -44,14 +44,14 @@ export const getPersonById = async (req, res) => {
 
 export const createPerson = async (req, res) => {
   try {
-    const { name, age, email, password, rol } = req.body;
+    const { name, age, email, password, role } = req.body;
 
     const newPerson = await Person.create({
       name,
       age,
       email,
       password,
-      rol,
+      role,
     });
 
     const personResponse = newPerson.toJSON();
@@ -69,7 +69,7 @@ export const createPerson = async (req, res) => {
 export const updatePerson = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, age, email, password, rol, estado } = req.body;
+    const { name, age, email, password, role, estado } = req.body;
 
     const person = await Person.findByPk(id);
 
@@ -86,7 +86,7 @@ export const updatePerson = async (req, res) => {
     if (email !== undefined) dataToUpdate.email = email;
     if (password !== undefined) dataToUpdate.password = password;
     if (estado !== undefined) dataToUpdate.estado = estado;
-    if (rol !== undefined) dataToUpdate.rol = rol;
+    if (role !== undefined) dataToUpdate.role = role;
 
     await person.update(dataToUpdate);
 
@@ -118,20 +118,20 @@ export const makeAdmin = async (req, res) => {
       });
     }
 
-    if (person.rol === "SYSADMIN") {
+    if (person.role === "SYSADMIN") {
       return res.status(400).json({
         message: "No se puede modificar el rol de un SYSADMIN",
       });
     }
 
-    if (person.rol === "ADMIN") {
+    if (person.role === "ADMIN") {
       return res.json({
         message: "El usuario ya es ADMIN",
       });
     }
 
     await person.update({
-      rol: "ADMIN",
+      role: "ADMIN",
     });
 
     const personResponse = person.toJSON();
