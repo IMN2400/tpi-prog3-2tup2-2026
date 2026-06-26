@@ -23,7 +23,7 @@ const BanModel = sequelize.define('Ban', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    estado: {
+    status: {
     type: DataTypes.ENUM(
         'activo',
         'expirado',

@@ -28,17 +28,17 @@ export const Person = sequelize.define("Person", {
     defaultValue: "USER",
   },
 
-  estado: {
+  status: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
 
-  numeroBaneos: {
+  timesBanned: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
   },
 
-  fechaDesbaneo: {
+  dateBanLifted: {
     type: DataTypes.DATE,
     allowNull: true,
   }

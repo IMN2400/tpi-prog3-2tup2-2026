@@ -54,13 +54,13 @@ export const getForumById = async (req, res) => {
 
 export const createForum = async (req, res) => {
   try {
-    const { name, descripcion, rules } = req.body;
+    const { name, desc, rules } = req.body;
 
     const newForum = await Forum.create({
       name,
-      descripcion,
+      desc,
       rules,
-      fundadorId: req.user.id,
+      founderId: req.user.id,
     });
 
     res.status(201).json(newForum);
@@ -75,7 +75,7 @@ export const createForum = async (req, res) => {
 export const updateForum = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, descripcion, rules, estado } = req.body;
+    const { name, desc, rules, status } = req.body;
 
     const forum = await Forum.findByPk(id);
 
@@ -88,9 +88,9 @@ export const updateForum = async (req, res) => {
     const dataToUpdate = {};
 
     if (name !== undefined) dataToUpdate.name = name;
-    if (descripcion !== undefined) dataToUpdate.descripcion = descripcion;
+    if (desc !== undefined) dataToUpdate.desc = desc;
     if (rules !== undefined) dataToUpdate.rules = rules;
-    if (estado !== undefined) dataToUpdate.estado = estado;
+    if (status !== undefined) dataToUpdate.status = status;
 
     await forum.update(dataToUpdate);
 
@@ -119,7 +119,7 @@ export const deleteForum = async (req, res) => {
     }
 
     await forum.update({
-      estado: false,
+      status: false,
     });
 
     res.json({

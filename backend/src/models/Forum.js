@@ -8,7 +8,7 @@ export const Forum = sequelize.define("Forum", {
     unique: true,
   },
 
-   descripcion: {
+   desc: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
@@ -19,12 +19,12 @@ export const Forum = sequelize.define("Forum", {
     defaultValue: ""
   },
 
-   estado: {
+   status: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
 
-  fundadorId: {
+  founderId: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },

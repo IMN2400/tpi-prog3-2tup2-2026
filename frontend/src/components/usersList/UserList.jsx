@@ -79,17 +79,17 @@ const Users = () => {
                             <td>{item.email}</td>
                             <td
                                 className={
-                                    item.estado
+                                    item.status
                                         ? "text-success fw-bold"
                                         : "text-danger fw-bold"
                                 }
                             >
-                                {item.estado
+                                {item.status
                                     ? "Activo"
                                     : "Baneado"}
                             </td>
                             <td>
-                                {item.estado && (
+                                {item.status && (
                                     <Button
                                         variant="warning"
                                         onClick={() => openBanModal(item)}

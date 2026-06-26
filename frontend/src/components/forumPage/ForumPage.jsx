@@ -94,7 +94,7 @@ const ForumPage = () => {
             <h1>{forum?.name || "Foro"}</h1>
 
             <p>
-              {forum?.descripcion ||
+              {forum?.desc ||
                 "Espacio general para debatir temas de la comunidad."}
             </p>
 

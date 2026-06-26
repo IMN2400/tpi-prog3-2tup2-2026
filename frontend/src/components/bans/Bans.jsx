@@ -53,7 +53,7 @@ const Bans = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          estado: "desbaneado",
+          status: "desbaneado",
         }),
       });
 
@@ -68,7 +68,7 @@ const Bans = () => {
           item.id === ban.id
             ? {
                 ...item,
-                estado: "desbaneado",
+                status: "desbaneado",
               }
             : item
         )
@@ -120,10 +120,10 @@ const Bans = () => {
                 <br />({item.remainingText})
               </td>
 
-              <td>{item.estado}</td>
+              <td>{item.status}</td>
 
               <td>
-                {item.estado === "activo" ? (
+                {item.status === "activo" ? (
                     <Button
                     variant="warning"
                     size="sm"

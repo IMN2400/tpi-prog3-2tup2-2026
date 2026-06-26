@@ -80,12 +80,12 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    if (user.estado === false) {
+    if (user.status === false) {
       const hoy = new Date();
-      const fechaDesbaneo = new Date(user.fechaDesbaneo);
+      const dateBanLifted = new Date(user.dateBanLifted);
 
-      if (fechaDesbaneo > hoy) {
-        const diferencia = fechaDesbaneo - hoy;
+      if (dateBanLifted > hoy) {
+        const diferencia = dateBanLifted - hoy;
         const diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
 
         return res.status(403).json({
@@ -97,8 +97,8 @@ export const loginUser = async (req, res) => {
       }
 
       await user.update({
-        estado: true,
-        fechaDesbaneo: null,
+        status: true,
+        dateBanLifted: null,
       });
     }
 

@@ -22,7 +22,7 @@ export const getPersonById = async (req, res) => {
     const person = await Person.findByPk(id, {
       where: {
         id,
-        estado: true,
+        status: true,
       },
       attributes: { exclude: ["password"] },
     });
@@ -69,7 +69,7 @@ export const createPerson = async (req, res) => {
 export const updatePerson = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, age, email, password, role, estado } = req.body;
+    const { name, age, email, password, role, status } = req.body;
 
     const person = await Person.findByPk(id);
 
@@ -85,7 +85,7 @@ export const updatePerson = async (req, res) => {
     if (age !== undefined) dataToUpdate.age = age;
     if (email !== undefined) dataToUpdate.email = email;
     if (password !== undefined) dataToUpdate.password = password;
-    if (estado !== undefined) dataToUpdate.estado = estado;
+    if (status !== undefined) dataToUpdate.status = status;
     if (role !== undefined) dataToUpdate.role = role;
 
     await person.update(dataToUpdate);

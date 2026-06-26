@@ -15,7 +15,7 @@ export const onlyAdminOrSysadmin = async (req, res, next) => {
     const person = await Person.findOne({
         where: {
           id: personId,
-          estado: true,
+          status: true,
         },
       });
 
@@ -55,7 +55,7 @@ export const onlySysadmin = async (req, res, next) => {
     const person = await Person.findOne({
       where: {
         id: personId,
-        estado: true,
+        status: true,
       },
     });
 
@@ -107,7 +107,7 @@ export const canDeleteComment = async (req, res, next) => {
     const person = await models.Person.findOne({
       where: {
         id: loggedUserId,
-        estado: true,
+        status: true,
       },
     });
 

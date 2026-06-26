@@ -10,12 +10,12 @@ const ForumDisplay = ({ forum }) => {
 
   const { token, isSysAdmin, isAuthenticated } = useAuth();
 
-  const { id, name, descripcion, estado } = forum;
+  const { id, name, desc, status } = forum;
 
   const [deletionModal, setDeletionModal] = useState(false);
   const [deleteForumLoading, setDeleteForumLoading] = useState(false);
   const [deleteForumError, setDeleteForumError] = useState("");
-  const [isForumVisible, setIsForumVisible] = useState(estado);
+  const [isForumVisible, setIsForumVisible] = useState(status);
 
   const posts = Array.isArray(forum.Posts) ? forum.Posts : [];
   const totalPosts = posts.length;
@@ -91,7 +91,7 @@ const ForumDisplay = ({ forum }) => {
           </Card.Title>
 
           <Card.Text className="single-forum-card-description">
-            {descripcion || "Este foro no tiene descripción cargada."}
+            {desc || "Este foro no tiene descripción cargada."}
           </Card.Text>
 
           <div className="single-forum-card-stats">
