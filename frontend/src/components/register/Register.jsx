@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useRef  } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
+import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import "../login/LogIn.css";
 
 const Register = () => {
   const navigate = useNavigate();
+
+  const nickRef = useRef(null);
+  const nameRef = useRef(null);
+  const emailRef = useRef(null);
+  const ageRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
 
   const [form, setForm] = useState({
     nick: "",
@@ -24,11 +31,12 @@ const Register = () => {
     confirmPassword: "",
   });
 
-  const [error, setError] = useState("");
+
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
+
     const newErrors = {
       nick: "",
       name: "",
@@ -78,14 +86,7 @@ const Register = () => {
 
     setErrors(newErrors);
 
-    return (
-      !newErrors.nick &&
-      !newErrors.name &&
-      !newErrors.email &&
-      !newErrors.age &&
-      !newErrors.password &&
-      !newErrors.confirmPassword
-    );
+    return newErrors;
   };
 
   const handleChange = (e) => {
@@ -101,19 +102,44 @@ const Register = () => {
       [name]: "",
     });
 
-    setError("");
     setSuccess("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setError("");
     setSuccess("");
 
-    const isValid = validateForm();
+    const newErrors = validateForm();
 
-    if (!isValid) {
+    // validaciones para enfocar cada campo
+    if (newErrors.nick) {
+      nickRef.current?.focus();
+      return;
+    }
+
+    if (newErrors.name) {
+      nameRef.current?.focus();
+      return;
+    }
+
+    if (newErrors.email) {
+      emailRef.current?.focus();
+      return;
+    }
+
+    if (newErrors.age) {
+      ageRef.current?.focus();
+      return;
+    }
+
+    if (newErrors.password) {
+      passwordRef.current?.focus();
+      return;
+    }
+
+    if (newErrors.confirmPassword) {
+      confirmPasswordRef.current?.focus();
       return;
     }
 
@@ -137,7 +163,14 @@ const Register = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Error al registrar usuario");
+
+        setErrors({
+          ...errors,
+          email: data.message || "No se pudo registrar el usuario",
+        });
+
+        emailRef.current?.focus();
+        return;
       }
 
       setSuccess("Usuario registrado correctamente");
@@ -146,7 +179,12 @@ const Register = () => {
         navigate("/login");
       }, 1500);
     } catch (error) {
-      setError(error.message);
+      setErrors({
+        ...errors,
+        email: "Error de conexión con el servidor",
+      });
+
+      emailRef.current?.focus();
     } finally {
       setLoading(false);
     }
@@ -168,19 +206,6 @@ const Register = () => {
                     Unite al Gran Foro TUP y empezá a participar
                   </p>
                 </div>
-
-                {error && (
-                  <Alert variant="danger" className="login-alert">
-                    {error}
-                  </Alert>
-                )}
-
-                {success && (
-                  <Alert variant="success" className="login-alert">
-                    {success}
-                  </Alert>
-                )}
-
                 <Form onSubmit={handleSubmit} noValidate>
                   <Form.Group className="mb-3" controlId="nick">
                     <Form.Label className="login-label">Nick</Form.Label>
@@ -193,6 +218,7 @@ const Register = () => {
                       placeholder="Ej: Juan123"
                       autoComplete="username"
                       isInvalid={!!errors.nick}
+                      ref={nickRef}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
                       {errors.nick}
@@ -210,6 +236,7 @@ const Register = () => {
                       placeholder="Ingresá tu nombre"
                       autoComplete="name"
                       isInvalid={!!errors.name}
+                      ref={nameRef}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
                       {errors.name}
@@ -229,6 +256,7 @@ const Register = () => {
                       placeholder="ejemplo@mail.com"
                       autoComplete="email"
                       isInvalid={!!errors.email}
+                      ref={emailRef}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
                       {errors.email}
@@ -246,6 +274,7 @@ const Register = () => {
                       onChange={handleChange}
                       placeholder="13+"
                       isInvalid={!!errors.age}
+                      ref={ageRef}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
                       {errors.age}
@@ -260,9 +289,10 @@ const Register = () => {
                       name="password"
                       value={form.password}
                       onChange={handleChange}
-                      placeholder="Creá una contraseña"
+                      placeholder="Contraseña (mínimo 6 caracteres)"
                       autoComplete="new-password"
                       isInvalid={!!errors.password}
+                      ref={passwordRef}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
                       {errors.password}
@@ -282,6 +312,7 @@ const Register = () => {
                       placeholder="Repetí tu contraseña"
                       autoComplete="new-password"
                       isInvalid={!!errors.confirmPassword}
+                      ref={confirmPasswordRef}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
                       {errors.confirmPassword}
@@ -295,8 +326,13 @@ const Register = () => {
                   >
                     {loading ? "Registrando..." : "Crear cuenta"}
                   </Button>
-                </Form>
 
+                  {success && (
+                    <p className="text-success text-center mt-3 mb-0">
+                      {success}
+                    </p>
+                  )}
+                </Form>
                 <div className="login-footer">
                   <span>¿Ya tenés cuenta?</span>{" "}
                   <Link to="/login">Iniciar sesión</Link>

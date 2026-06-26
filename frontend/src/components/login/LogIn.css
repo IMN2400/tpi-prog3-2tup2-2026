@@ -253,3 +253,30 @@
   border-color: #8eb59a;
 }
 
+.login-input.is-invalid,
+.login-input.is-invalid:focus,
+.form-control.is-invalid,
+.form-control.is-invalid:focus {
+  border-color: #dc3545;
+  background-image: none;
+}
+
+.login-input.is-invalid:focus,
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+}
+
+.login-input.is-invalid:-webkit-autofill,
+.login-input.is-invalid:-webkit-autofill:hover,
+.login-input.is-invalid:-webkit-autofill:focus,
+.login-input.is-invalid:-webkit-autofill:active {
+  border-color: #dc3545 !important;
+  -webkit-box-shadow:
+    0 0 0 1000px #ffffff inset,
+    0 0 0 0.2rem rgba(220, 53, 69, 0.15) !important;
+  box-shadow:
+    0 0 0 1000px #ffffff inset,
+    0 0 0 0.2rem rgba(220, 53, 69, 0.15) !important;
+  -webkit-text-fill-color: #1f2d24 !important;
+  caret-color: #1f2d24;
+}

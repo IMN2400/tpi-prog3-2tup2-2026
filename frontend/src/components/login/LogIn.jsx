@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useRef  } from "react";
+import { Container, Row, Col, Card, Form, Button} from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
-import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
 import "./LogIn.css";
 import { useAuth } from "../../context/AuthContext";
 
 const LogIn = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  //declaro los refs
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
 
   const [form, setForm] = useState({
     email: "",
@@ -43,10 +47,10 @@ const LogIn = () => {
 
     setErrors(newErrors);
 
-    return !newErrors.email && !newErrors.password;
+    return newErrors;
   };
 
-  const handleChange = (event) => {
+const handleChange = (event) => {
     const { name, value } = event.target;
 
     setForm({
@@ -62,14 +66,56 @@ const LogIn = () => {
     setErrorGeneral("");
   };
 
- const handleSubmit = async (event) => {
+const showLoginError = (message) => {
+  if (message === "Usuario no encontrado") {
+    setErrorGeneral("");
+
+    setErrors({
+      email: "El correo no se encuentra registrado",
+      password: "",
+    });
+
+    emailRef.current?.focus();
+    return;
+  }
+
+  if (message === "Contraseña incorrecta") {
+    setErrorGeneral("");
+
+    setErrors({
+      email: "",
+      password: "La contraseña es incorrecta",
+    });
+
+    passwordRef.current?.focus();
+    return;
+  }
+
+  setErrorGeneral("Correo o contraseña incorrectos");
+
+  setErrors({
+    email: "Correo o contraseña incorrectos",
+    password: "Correo o contraseña incorrectos",
+  });
+
+  emailRef.current?.focus();
+};
+
+const handleSubmit = async (event) => {
   event.preventDefault();
 
   setErrorGeneral("");
 
-  const isValid = validateForm();
 
-  if (!isValid) {
+  const newErrors = validateForm();
+  // validaciones para enfocar
+  if (newErrors.email) {
+    emailRef.current?.focus();
+    return;
+  }
+
+  if (newErrors.password) {
+    passwordRef.current?.focus();
     return;
   }
 
@@ -87,18 +133,19 @@ const LogIn = () => {
     const data = await response.json();
 
     if (!response.ok) {
-      setErrorGeneral(data.message || "Error al iniciar sesión");
+      showLoginError(data.message);
       return;
     }
 
     login(data.user, data.token);
 
     navigate("/");
+
   } catch (error) {
-    setErrorGeneral("Error al conectar con el servidor");
+      showLoginError();
   } finally {
-    setLoading(false);
-  }
+      setLoading(false);
+    }
 };
 
 return (
@@ -147,13 +194,6 @@ return (
                       Ingresá tus datos para acceder al sistema
                     </p>
                   </div>
-
-                  {errorGeneral && (
-                    <Alert variant="danger" className="login-alert">
-                      {errorGeneral}
-                    </Alert>
-                  )}
-
                   <Form onSubmit={handleSubmit} noValidate>
                  <Form.Group className="mb-3" controlId="email">
                     <Form.Label className="login-label">
@@ -168,10 +208,11 @@ return (
                       value={form.email}
                       onChange={handleChange}
                       isInvalid={!!errors.email}
+                      ref={emailRef}
                     />
 
                     <Form.Control.Feedback type="invalid" className="login-error">
-                      {errors.email}
+                      {errors.email !== "Correo o contraseña incorrectos" && errors.email}
                     </Form.Control.Feedback>
                   </Form.Group>
 
@@ -188,13 +229,18 @@ return (
                       value={form.password}
                       onChange={handleChange}
                       isInvalid={!!errors.password}
+                      ref={passwordRef}
                     />
 
                     <Form.Control.Feedback type="invalid" className="login-error">
-                      {errors.password}
+                      {errors.password !== "Correo o contraseña incorrectos" && errors.password}
                     </Form.Control.Feedback>
                   </Form.Group>
-
+                    {errorGeneral && (
+                      <p className="text-danger mt-2 mb-0">
+                        {errorGeneral}
+                      </p>
+                    )}
                     <Button
                       type="submit"
                       className="login-button"
@@ -218,4 +264,5 @@ return (
   </main>
 );
 };
+
 export default LogIn;
