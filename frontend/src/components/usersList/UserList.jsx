@@ -42,11 +42,11 @@ const Users = () => {
                 .toString()
                 .includes(text)
             ||
-            user.nombre
+            user.name
                 .toLowerCase()
                 .includes(text)
             ||
-            user.correo
+            user.email
                 .toLowerCase()
                 .includes(text)
         );
@@ -75,21 +75,21 @@ const Users = () => {
                     {filteredUsers.map((item) => (
                         <tr key={item.id}>
                             <td>{item.id}</td>
-                            <td>{item.nombre}</td>
-                            <td>{item.correo}</td>
+                            <td>{item.name}</td>
+                            <td>{item.email}</td>
                             <td
                                 className={
-                                    item.estado
+                                    item.status
                                         ? "text-success fw-bold"
                                         : "text-danger fw-bold"
                                 }
                             >
-                                {item.estado
+                                {item.status
                                     ? "Activo"
                                     : "Baneado"}
                             </td>
                             <td>
-                                {item.estado && (
+                                {item.status && (
                                     <Button
                                         variant="warning"
                                         onClick={() => openBanModal(item)}

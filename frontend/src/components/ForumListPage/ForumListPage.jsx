@@ -14,7 +14,7 @@ const ForumListPage = () => {
   const [search, setSearch] = useState("");
 
   const filteredForums = (forums || []).filter((forum) => {
-    const text = `${forum.nombre || ""} ${forum.descripcion || ""}`.toLowerCase();
+    const text = `${forum.name || ""} ${forum.desc || ""}`.toLowerCase();
     return text.includes(search.toLowerCase());
   });
 

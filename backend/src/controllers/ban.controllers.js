@@ -26,13 +26,13 @@ export const createBan = async (req, res) => {
             date: new Date()
         });
 
-        const fechaDesbaneo = new Date();
-        fechaDesbaneo.setDate(fechaDesbaneo.getDate() + duration);
+        const dateBanLifted = new Date();
+        dateBanLifted.setDate(dateBanLifted.getDate() + duration);
 
         await user.update({
-            numeroBaneos: (user.numeroBaneos || 0) + 1,
-            fechaDesbaneo,
-            estado: false,
+            timesBanned: (user.timesBanned || 0) + 1,
+            dateBanLifted,
+            status: false,
             });
 
         res.status(201).json(newBan);
@@ -58,8 +58,8 @@ export const getBans = async (req, res) => {
 
       expirationDate.setDate(expirationDate.getDate() + ban.duration);
 
-      if (expirationDate < today && ban.estado === "activo") {
-        await ban.update({ estado: "expirado" });
+      if (expirationDate < today && ban.status === "activo") {
+        await ban.update({ status: "expirado" });
       }
     }
 
@@ -68,12 +68,12 @@ export const getBans = async (req, res) => {
         {
           model: Person,
           as: "bannedUser",
-          attributes: ["id", "nombre", "correo"],
+          attributes: ["id", "name", "email"],
         },
         {
           model: Person,
           as: "adminUser",
-          attributes: ["id", "nombre", "correo"],
+          attributes: ["id", "name", "email"],
         },
       ],
       order: [["date", "DESC"]],
@@ -118,11 +118,11 @@ export const getBanByUser = async (req, res) => {
 
             if (
                 expirationDate < today &&
-                ban.estado === 'activo'
+                ban.status === 'activo'
             ) {
 
                 await ban.update({
-                    estado: 'expirado'
+                    status: 'expirado'
                 });
             }
         }
@@ -168,12 +168,12 @@ export const updateBan = async (req, res) => {
             });
         }
 
-        const fechaDesbaneo = new Date();
+        const dateBanLifted = new Date();
 
         await user.update({
-            numeroBaneos: user.numeroBaneos - 1,
-            fechaDesbaneo,
-            estado: true
+            timesBanned: user.timesBanned - 1,
+            dateBanLifted,
+            status: true
         });
 
         res.status(200).json({

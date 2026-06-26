@@ -78,7 +78,7 @@ const Post = ({ postId }) => {
       return false;
     }
 
-    if (!isSysAdmin && targetUser?.rol === "SYSADMIN") {
+    if (!isSysAdmin && targetUser?.role === "SYSADMIN") {
       return false;
     }
 
@@ -98,7 +98,7 @@ const Post = ({ postId }) => {
       return false;
     }
 
-    if (targetUser.rol && targetUser.rol !== "USER") {
+    if (targetUser.role && targetUser.role !== "USER") {
       return false;
     }
 
@@ -114,7 +114,7 @@ const Post = ({ postId }) => {
       return true;
     }
 
-    if (isAdmin && post?.Person?.rol !== "SYSADMIN") {
+    if (isAdmin && post?.Person?.role !== "SYSADMIN") {
       return true;
     }
 
@@ -145,7 +145,7 @@ const Post = ({ postId }) => {
 
   const goToBanForm = (targetUser) => {
     const userId = targetUser.id;
-    const userName = targetUser.nombre || "Usuario";
+    const userName = targetUser.name || "Usuario";
 
     navigate(`/newban?userId=${userId}&userName=${encodeURIComponent(userName)}`);
   };
@@ -153,7 +153,7 @@ const Post = ({ postId }) => {
   const handleMakeAdmin = (targetUser) => {
     requireAuth(async () => {
       const confirmed = window.confirm(
-        `¿Querés convertir a ${targetUser.nombre || "este usuario"} en ADMIN?`
+        `¿Querés convertir a ${targetUser.name || "este usuario"} en ADMIN?`
       );
 
       if (!confirmed) {
@@ -729,8 +729,8 @@ const Post = ({ postId }) => {
   };
 
   const renderCommentNode = (comment, level = 0) => {
-    const author = comment.Person?.nombre || "Usuario";
-    const role = comment.Person?.rol;
+    const author = comment.Person?.name || "Usuario";
+    const role = comment.Person?.role;
     const children = comment.children || [];
     const isExpanded = !!expandedThreads[comment.id];
 
@@ -972,9 +972,9 @@ const Post = ({ postId }) => {
     );
   }
 
-  const authorName = post.Person?.nombre || "Usuario";
-  const authorRole = post.Person?.rol;
-  const forumName = post.Forum?.nombre || "Foro";
+  const authorName = post.Person?.name || "Usuario";
+  const authorRole = post.Person?.role;
+  const forumName = post.Forum?.name || "Foro";
   const forumId = post.Forum?.id || post.forumId;
 
   return (
@@ -1142,7 +1142,7 @@ const Post = ({ postId }) => {
           <Form onSubmit={handleCreateComment} noValidate>
             <div className="post-comment-input-row">
               <div className="post-comment-user-avatar">
-                {getInitial(user?.nombre || "U")}
+                {getInitial(user?.name || "U")}
               </div>
 
               <Form.Control

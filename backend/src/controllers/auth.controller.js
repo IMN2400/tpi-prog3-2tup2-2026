@@ -6,16 +6,16 @@ const JWT_SECRET = "clave_temporal";
 
 export const registerUser = async (req, res) => {
   try {
-    const { nombre, edad, correo, password } = req.body;
+    const { name, age, email, password } = req.body;
 
-    if (!nombre || !edad || !correo || !password) {
+    if (!name || !age || !email || !password) {
       return res.status(400).json({
         message: "Todos los campos son obligatorios",
       });
     }
 
     const existingUser = await Person.findOne({
-      where: { correo },
+      where: { email },
     });
 
     if (existingUser) {
@@ -27,21 +27,21 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await Person.create({
-      nombre,
-      edad,
-      correo,
+      name,
+      age,
+      email,
       password: hashedPassword,
-      rol: "USER",
+      role: "USER",
     });
 
     res.status(201).json({
       message: "Usuario registrado correctamente",
       user: {
         id: newUser.id,
-        nombre: newUser.nombre,
-        edad: newUser.edad,
-        correo: newUser.correo,
-        rol: newUser.rol,
+        name: newUser.name,
+        age: newUser.age,
+        email: newUser.email,
+        role: newUser.role,
       },
     });
   } catch (error) {
@@ -54,16 +54,16 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    const { correo, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!correo || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         message: "Correo y contraseña son obligatorios",
       });
     }
 
     const user = await Person.findOne({
-      where: { correo },
+      where: { email },
     });
 
     if (!user) {
@@ -80,12 +80,12 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    if (user.estado === false) {
+    if (user.status === false) {
       const hoy = new Date();
-      const fechaDesbaneo = new Date(user.fechaDesbaneo);
+      const dateBanLifted = new Date(user.dateBanLifted);
 
-      if (fechaDesbaneo > hoy) {
-        const diferencia = fechaDesbaneo - hoy;
+      if (dateBanLifted > hoy) {
+        const diferencia = dateBanLifted - hoy;
         const diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
 
         return res.status(403).json({
@@ -97,17 +97,17 @@ export const loginUser = async (req, res) => {
       }
 
       await user.update({
-        estado: true,
-        fechaDesbaneo: null,
+        status: true,
+        dateBanLifted: null,
       });
     }
 
     const token = jwt.sign(
       {
         id: user.id,
-        nombre: user.nombre,
-        correo: user.correo,
-        rol: user.rol,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       },
       JWT_SECRET,
       {
@@ -120,9 +120,9 @@ export const loginUser = async (req, res) => {
       token,
       user: {
         id: user.id,
-        nombre: user.nombre,
-        correo: user.correo,
-        rol: user.rol,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {

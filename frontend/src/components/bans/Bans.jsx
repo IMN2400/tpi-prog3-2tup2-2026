@@ -53,7 +53,7 @@ const Bans = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          estado: "desbaneado",
+          status: "desbaneado",
         }),
       });
 
@@ -68,7 +68,7 @@ const Bans = () => {
           item.id === ban.id
             ? {
                 ...item,
-                estado: "desbaneado",
+                status: "desbaneado",
               }
             : item
         )
@@ -107,9 +107,9 @@ const Bans = () => {
         <tbody>
           {bans.map((item) => (
             <tr key={item.id}>
-              <td>{item.bannedUser?.nombre || "Usuario no encontrado"}</td>
+              <td>{item.bannedUser?.name || "Usuario no encontrado"}</td>
 
-              <td>{item.adminUser?.nombre || "Admin no encontrado"}</td>
+              <td>{item.adminUser?.name || "Admin no encontrado"}</td>
 
               <td>{item.reason}</td>
 
@@ -120,10 +120,10 @@ const Bans = () => {
                 <br />({item.remainingText})
               </td>
 
-              <td>{item.estado}</td>
+              <td>{item.status}</td>
 
               <td>
-                {item.estado === "activo" ? (
+                {item.status === "activo" ? (
                     <Button
                     variant="warning"
                     size="sm"

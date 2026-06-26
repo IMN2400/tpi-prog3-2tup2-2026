@@ -2,17 +2,17 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../config/database.js";
 
 export const Person = sequelize.define("Person", {
-  nombre: {
+  name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
 
-  edad: {
+  age: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
 
-  correo: {
+  email: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
@@ -23,22 +23,22 @@ export const Person = sequelize.define("Person", {
     allowNull: false,
   },
 
-  rol: {
+  role: {
     type: DataTypes.ENUM("USER", "ADMIN", "SYSADMIN"),
     defaultValue: "USER",
   },
 
-  estado: {
+  status: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
 
-  numeroBaneos: {
+  timesBanned: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
   },
 
-  fechaDesbaneo: {
+  dateBanLifted: {
     type: DataTypes.DATE,
     allowNull: true,
   }

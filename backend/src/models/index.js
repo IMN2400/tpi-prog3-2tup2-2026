@@ -6,11 +6,11 @@ import BanModel from "./Bans.js";
 
 // Relaciones Person - Forum
 Person.hasMany(Forum, {
-  foreignKey: "fundadorId",
+  foreignKey: "founderId",
 });
 
 Forum.belongsTo(Person, {
-  foreignKey: "fundadorId",
+  foreignKey: "founderId",
 });
 
 // Relaciones Person - Post

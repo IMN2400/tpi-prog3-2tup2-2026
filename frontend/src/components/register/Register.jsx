@@ -8,18 +8,18 @@ const Register = () => {
 
   const [form, setForm] = useState({
     nick: "",
-    nombre: "",
-    correo: "",
-    edad: "",
+    name: "",
+    email: "",
+    age: "",
     password: "",
     confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({
     nick: "",
-    nombre: "",
-    correo: "",
-    edad: "",
+    name: "",
+    email: "",
+    age: "",
     password: "",
     confirmPassword: "",
   });
@@ -31,9 +31,9 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {
       nick: "",
-      nombre: "",
-      correo: "",
-      edad: "",
+      name: "",
+      email: "",
+      age: "",
       password: "",
       confirmPassword: "",
     };
@@ -46,22 +46,22 @@ const Register = () => {
       newErrors.nick = "El nick debe tener al menos 3 caracteres";
     }
 
-    if (!form.nombre.trim()) {
-      newErrors.nombre = "El nombre es obligatorio";
-    } else if (form.nombre.trim().length < 2) {
-      newErrors.nombre = "El nombre debe tener al menos 2 caracteres";
+    if (!form.name.trim()) {
+      newErrors.name = "El nombre es obligatorio";
+    } else if (form.name.trim().length < 2) {
+      newErrors.name = "El nombre debe tener al menos 2 caracteres";
     }
 
-    if (!form.correo.trim()) {
-      newErrors.correo = "El correo electrónico es obligatorio";
-    } else if (!emailRegex.test(form.correo)) {
-      newErrors.correo = "Ingrese un correo electrónico válido";
+    if (!form.email.trim()) {
+      newErrors.email = "El correo electrónico es obligatorio";
+    } else if (!emailRegex.test(form.email)) {
+      newErrors.email = "Ingrese un correo electrónico válido";
     }
 
-    if (!form.edad.trim()) {
-      newErrors.edad = "La edad es obligatoria";
-    } else if (Number(form.edad) < 13) {
-      newErrors.edad = "La edad mínima es 13 años";
+    if (!form.age.trim()) {
+      newErrors.age = "La edad es obligatoria";
+    } else if (Number(form.age) < 13) {
+      newErrors.age = "La edad mínima es 13 años";
     }
 
     if (!form.password.trim()) {
@@ -80,9 +80,9 @@ const Register = () => {
 
     return (
       !newErrors.nick &&
-      !newErrors.nombre &&
-      !newErrors.correo &&
-      !newErrors.edad &&
+      !newErrors.name &&
+      !newErrors.email &&
+      !newErrors.age &&
       !newErrors.password &&
       !newErrors.confirmPassword
     );
@@ -127,9 +127,9 @@ const Register = () => {
         },
         body: JSON.stringify({
           nick: form.nick,
-          nombre: form.nombre,
-          correo: form.correo,
-          edad: Number(form.edad),
+          name: form.name,
+          email: form.email,
+          age: Number(form.age),
           password: form.password,
         }),
       });
@@ -199,56 +199,56 @@ const Register = () => {
                     </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-3" controlId="nombre">
+                  <Form.Group className="mb-3" controlId="name">
                     <Form.Label className="login-label">Nombre</Form.Label>
                     <Form.Control
                       className="login-input"
                       type="text"
-                      name="nombre"
-                      value={form.nombre}
+                      name="name"
+                      value={form.name}
                       onChange={handleChange}
                       placeholder="Ingresá tu nombre"
                       autoComplete="name"
-                      isInvalid={!!errors.nombre}
+                      isInvalid={!!errors.name}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
-                      {errors.nombre}
+                      {errors.name}
                     </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-3" controlId="correo">
+                  <Form.Group className="mb-3" controlId="email">
                     <Form.Label className="login-label">
                       Correo electrónico
                     </Form.Label>
                     <Form.Control
                       className="login-input"
                       type="text"
-                      name="correo"
-                      value={form.correo}
+                      name="email"
+                      value={form.email}
                       onChange={handleChange}
                       placeholder="ejemplo@mail.com"
                       autoComplete="email"
-                      isInvalid={!!errors.correo}
+                      isInvalid={!!errors.email}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
-                      {errors.correo}
+                      {errors.email}
                     </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-3" controlId="edad">
+                  <Form.Group className="mb-3" controlId="age">
                     <Form.Label className="login-label">Edad</Form.Label>
                     <Form.Control
                       className="login-input"
                       type="number"
-                      name="edad"
+                      name="age"
                       min="13"
-                      value={form.edad}
+                      value={form.age}
                       onChange={handleChange}
                       placeholder="13+"
-                      isInvalid={!!errors.edad}
+                      isInvalid={!!errors.age}
                     />
                     <Form.Control.Feedback type="invalid" className="login-error">
-                      {errors.edad}
+                      {errors.age}
                     </Form.Control.Feedback>
                   </Form.Group>
 

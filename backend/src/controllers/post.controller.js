@@ -167,7 +167,7 @@ export const deletearPost = async (req, res) => {
       });
     }
 
-    if (req.user.rol === "ADMIN" && post.Person?.rol === "SYSADMIN") {
+    if (req.user.role === "ADMIN" && post.Person?.role === "SYSADMIN") {
       return res.status(403).json({
         message: "No tenés permisos",
       });

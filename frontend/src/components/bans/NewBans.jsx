@@ -130,7 +130,7 @@ const NewBan = () => {
                 type="text"
                 value={
                   user?.id
-                    ? `${user?.nombre || "Admin"} (ID: ${user.id})`
+                    ? `${user?.name || "Admin"} (ID: ${user.id})`
                     : "Administrador logueado"
                 }
                 disabled
