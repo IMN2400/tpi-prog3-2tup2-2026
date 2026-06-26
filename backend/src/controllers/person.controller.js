@@ -44,12 +44,12 @@ export const getPersonById = async (req, res) => {
 
 export const createPerson = async (req, res) => {
   try {
-    const { nombre, edad, correo, password, rol } = req.body;
+    const { name, age, email, password, rol } = req.body;
 
     const newPerson = await Person.create({
-      nombre,
-      edad,
-      correo,
+      name,
+      age,
+      email,
       password,
       rol,
     });
@@ -69,7 +69,7 @@ export const createPerson = async (req, res) => {
 export const updatePerson = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, edad, correo, password, rol, estado } = req.body;
+    const { name, age, email, password, rol, estado } = req.body;
 
     const person = await Person.findByPk(id);
 
@@ -81,9 +81,9 @@ export const updatePerson = async (req, res) => {
     
     const dataToUpdate = {};
 
-    if (nombre !== undefined) dataToUpdate.nombre = nombre;
-    if (edad !== undefined) dataToUpdate.edad = edad;
-    if (correo !== undefined) dataToUpdate.correo = correo;
+    if (name !== undefined) dataToUpdate.name = name;
+    if (age !== undefined) dataToUpdate.age = age;
+    if (email !== undefined) dataToUpdate.email = email;
     if (password !== undefined) dataToUpdate.password = password;
     if (estado !== undefined) dataToUpdate.estado = estado;
     if (rol !== undefined) dataToUpdate.rol = rol;

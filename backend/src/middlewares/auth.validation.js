@@ -1,19 +1,19 @@
 export const validateRegister = (req, res, next) => {
-  const { nombre, edad, correo, password } = req.body;
+  const { name, age, email, password } = req.body;
 
   const errors = [];
 
-  if (!nombre || nombre.trim() === "") {
+  if (!name || name.trim() === "") {
     errors.push("El nombre es obligatorio");
   }
 
-  if (edad === undefined || edad === null) {
+  if (age === undefined || age === null) {
     errors.push("La edad es obligatoria");
   }
 
-  if (!correo || correo.trim() === "") {
+  if (!email || email.trim() === "") {
     errors.push("El correo es obligatorio");
-  } else if (!correo.includes("@")) {
+  } else if (!email.includes("@")) {
     errors.push("El correo no tiene un formato válido");
   }
 
@@ -33,13 +33,13 @@ export const validateRegister = (req, res, next) => {
 };
 
 export const validateLogin = (req, res, next) => {
-  const { correo, password } = req.body;
+  const { email, password } = req.body;
 
   const errors = [];
 
-  if (!correo || correo.trim() === "") {
+  if (!email || email.trim() === "") {
     errors.push("El correo es obligatorio");
-  } else if (!correo.includes("@")) {
+  } else if (!email.includes("@")) {
     errors.push("El correo no tiene un formato válido");
   }
 

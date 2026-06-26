@@ -1,9 +1,9 @@
 export const validateCreateForum = (req, res, next) => {
-  const { nombre, descripcion} = req.body;
+  const { name, descripcion} = req.body;
 
   const errors = [];
 
-  if (!nombre) errors.push("El nombre es obligatorio");
+  if (!name) errors.push("El nombre es obligatorio");
   if (!descripcion) errors.push("La descripción es obligatoria");
 
   if (errors.length > 0) {
@@ -14,11 +14,11 @@ export const validateCreateForum = (req, res, next) => {
 };
 
 export const validateUpdateForum = (req, res, next) => {
-  const { nombre, descripcion, reglas } = req.body;
+  const { name, descripcion, rules } = req.body;
 
   const errors = [];
 
-  if (nombre !== undefined && nombre.trim() === "") {
+  if (name !== undefined && name.trim() === "") {
     errors.push("Nombre requerido");
   }
 
@@ -27,7 +27,7 @@ export const validateUpdateForum = (req, res, next) => {
   }
 
   // las reglas no es obligatorio pero si vienen no pueden quedar vacias.
-  if (reglas !== undefined && reglas.trim() === "") {
+  if (rules !== undefined && rules.trim() === "") {
     errors.push("Reglas no pueden estar vacías");
   }
 

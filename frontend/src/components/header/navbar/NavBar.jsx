@@ -102,7 +102,7 @@ const NavBar = () => {
                   align="end"
                   variant="success"
                   className="app-navbar-username app-navbar-dropdown"
-                  title={user?.nombre || "Usuario"}
+                  title={user?.name || "Usuario"}
                 >
                   <Dropdown.Item onClick={handleLogout}>
                     Cerrar sesión

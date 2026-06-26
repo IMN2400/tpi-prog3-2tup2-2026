@@ -1,18 +1,18 @@
 export const validateCreatePerson = (req, res, next) => {
 
-    const { nombre, edad, correo, password } = req.body;
+    const { name, age, email, password } = req.body;
 
     const errors = [];
 
-    if (!nombre) errors.push("El nombre es obligatorio");
+    if (!name) errors.push("El nombre es obligatorio");
 
-    if (edad === undefined || edad === null) {
+    if (age === undefined || age === null) {
         errors.push("La edad es obligatoria");
-    } else if (edad < 0) {
+    } else if (age < 0) {
         errors.push("La edad no puede ser negativa");
      }
 
-    if (!correo) errors.push("El correo es obligatorio");
+    if (!email) errors.push("El correo es obligatorio");
 
     if (!password) errors.push("La contraseña es obligatoria");
 
@@ -26,23 +26,23 @@ export const validateCreatePerson = (req, res, next) => {
 };
 
 export const validateUpdatePerson = (req, res, next) => {
-  const { nombre, edad, correo, password } = req.body;
+  const { name, age, email, password } = req.body;
 
   const errors = [];
 
-  if (nombre !== undefined && nombre === "") {
+  if (name !== undefined && name === "") {
     errors.push("El nombre no puede estar vacío");
   }
 
-  if (edad !== undefined) {
-    if (edad === null) {
+  if (age !== undefined) {
+    if (age === null) {
       errors.push("La edad no puede ser null");
-    } else if (edad < 0) {
+    } else if (age < 0) {
       errors.push("La edad no puede ser negativa");
     }
   }
 
-  if (correo !== undefined && correo === "") {
+  if (email !== undefined && email === "") {
     errors.push("El correo no puede estar vacío");
   }
 

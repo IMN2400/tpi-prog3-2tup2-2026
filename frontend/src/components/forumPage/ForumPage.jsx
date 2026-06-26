@@ -32,8 +32,8 @@ const ForumPage = () => {
   const forumPosts = Array.isArray(posts) ? posts : [];
 
   // arma la lista de reglas, si no tiene reglas usa reglas por defecto
-  const rules = forum?.reglas
-    ? forum.reglas
+  const rules = forum?.rules
+    ? forum.rules
         .split(".")
         .map((rule) => rule.trim())
         .filter((rule) => rule.length > 0)
@@ -86,12 +86,12 @@ const ForumPage = () => {
         <div className="forum-detail-breadcrumb">
           <Link to="/foros">Foros</Link>
           <span>{">"}</span>
-          <span>{forum?.nombre || "Foro"}</span>
+          <span>{forum?.name || "Foro"}</span>
         </div>
 
         <div className="forum-detail-header">
           <div className="forum-detail-header-content">
-            <h1>{forum?.nombre || "Foro"}</h1>
+            <h1>{forum?.name || "Foro"}</h1>
 
             <p>
               {forum?.descripcion ||
@@ -99,7 +99,7 @@ const ForumPage = () => {
             </p>
 
             <div className="forum-detail-meta">
-              <span>Fundador: {forum?.Person?.nombre || "Admin"}</span>
+              <span>Fundador: {forum?.Person?.name || "Admin"}</span>
               <span>{forumPosts.length} Publicaciones</span>
             </div>
           </div>
@@ -136,7 +136,7 @@ const ForumPage = () => {
                       onClick={() => handleGoToPost(post.id)}
                     >
                       <div className="forum-detail-post-avatar">
-                        {post.Person?.nombre?.charAt(0).toUpperCase() || "U"}
+                        {post.Person?.name?.charAt(0).toUpperCase() || "U"}
                       </div>
 
                       <div className="forum-detail-post-content">
@@ -146,7 +146,7 @@ const ForumPage = () => {
 
                         <div className="forum-detail-post-footer">
                           <span>
-                            {post.Person?.nombre || "Usuario"} · Hace unas horas
+                            {post.Person?.name || "Usuario"} · Hace unas horas
                           </span>
 
                           <div className="forum-detail-post-stats">

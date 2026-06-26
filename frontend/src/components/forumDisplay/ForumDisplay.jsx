@@ -10,7 +10,7 @@ const ForumDisplay = ({ forum }) => {
 
   const { token, isSysAdmin, isAuthenticated } = useAuth();
 
-  const { id, nombre, descripcion, estado } = forum;
+  const { id, name, descripcion, estado } = forum;
 
   const [deletionModal, setDeletionModal] = useState(false);
   const [deleteForumLoading, setDeleteForumLoading] = useState(false);
@@ -87,7 +87,7 @@ const ForumDisplay = ({ forum }) => {
       <Card.Body className="single-forum-card-body">
         <div className="single-forum-card-content">
           <Card.Title className="single-forum-card-title">
-            {nombre}
+            {name}
           </Card.Title>
 
           <Card.Text className="single-forum-card-description">

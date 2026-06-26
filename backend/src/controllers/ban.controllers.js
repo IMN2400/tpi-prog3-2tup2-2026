@@ -68,12 +68,12 @@ export const getBans = async (req, res) => {
         {
           model: Person,
           as: "bannedUser",
-          attributes: ["id", "nombre", "correo"],
+          attributes: ["id", "name", "email"],
         },
         {
           model: Person,
           as: "adminUser",
-          attributes: ["id", "nombre", "correo"],
+          attributes: ["id", "name", "email"],
         },
       ],
       order: [["date", "DESC"]],

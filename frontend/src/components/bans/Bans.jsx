@@ -107,9 +107,9 @@ const Bans = () => {
         <tbody>
           {bans.map((item) => (
             <tr key={item.id}>
-              <td>{item.bannedUser?.nombre || "Usuario no encontrado"}</td>
+              <td>{item.bannedUser?.name || "Usuario no encontrado"}</td>
 
-              <td>{item.adminUser?.nombre || "Admin no encontrado"}</td>
+              <td>{item.adminUser?.name || "Admin no encontrado"}</td>
 
               <td>{item.reason}</td>
 

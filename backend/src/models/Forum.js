@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../config/database.js";
 
 export const Forum = sequelize.define("Forum", {
-  nombre: {
+  name: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
@@ -13,7 +13,7 @@ export const Forum = sequelize.define("Forum", {
     allowNull: false,
   },
 
-  reglas: {
+  rules: {
     type: DataTypes.TEXT,
     allowNull: true,
     defaultValue: ""

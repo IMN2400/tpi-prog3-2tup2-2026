@@ -2,17 +2,17 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../config/database.js";
 
 export const Person = sequelize.define("Person", {
-  nombre: {
+  name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
 
-  edad: {
+  age: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
 
-  correo: {
+  email: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,

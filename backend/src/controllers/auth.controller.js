@@ -6,16 +6,16 @@ const JWT_SECRET = "clave_temporal";
 
 export const registerUser = async (req, res) => {
   try {
-    const { nombre, edad, correo, password } = req.body;
+    const { name, age, email, password } = req.body;
 
-    if (!nombre || !edad || !correo || !password) {
+    if (!name || !age || !email || !password) {
       return res.status(400).json({
         message: "Todos los campos son obligatorios",
       });
     }
 
     const existingUser = await Person.findOne({
-      where: { correo },
+      where: { email },
     });
 
     if (existingUser) {
@@ -27,9 +27,9 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await Person.create({
-      nombre,
-      edad,
-      correo,
+      name,
+      age,
+      email,
       password: hashedPassword,
       rol: "USER",
     });
@@ -38,9 +38,9 @@ export const registerUser = async (req, res) => {
       message: "Usuario registrado correctamente",
       user: {
         id: newUser.id,
-        nombre: newUser.nombre,
-        edad: newUser.edad,
-        correo: newUser.correo,
+        name: newUser.name,
+        age: newUser.age,
+        email: newUser.email,
         rol: newUser.rol,
       },
     });
@@ -54,16 +54,16 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    const { correo, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!correo || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         message: "Correo y contraseña son obligatorios",
       });
     }
 
     const user = await Person.findOne({
-      where: { correo },
+      where: { email },
     });
 
     if (!user) {
@@ -105,8 +105,8 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       {
         id: user.id,
-        nombre: user.nombre,
-        correo: user.correo,
+        name: user.name,
+        email: user.email,
         rol: user.rol,
       },
       JWT_SECRET,
@@ -120,8 +120,8 @@ export const loginUser = async (req, res) => {
       token,
       user: {
         id: user.id,
-        nombre: user.nombre,
-        correo: user.correo,
+        name: user.name,
+        email: user.email,
         rol: user.rol,
       },
     });

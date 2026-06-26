@@ -7,9 +7,9 @@ const NewForum = () => {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    nombre: "",
+    name: "",
     descripcion: "",
-    reglas: "",
+    rules: "",
   });
 
   const [error, setError] = useState("");
@@ -39,7 +39,7 @@ const NewForum = () => {
       return;
     }
 
-    if (!form.nombre.trim() || !form.descripcion.trim()) {
+    if (!form.name.trim() || !form.descripcion.trim()) {
       setError("El nombre y la descripción son obligatorios.");
       return;
     }
@@ -110,9 +110,9 @@ const NewForum = () => {
                 <Form.Label>Nombre del foro</Form.Label>
                 <Form.Control
                   type="text"
-                  name="nombre"
+                  name="name"
                   placeholder="Ej: Programación, Base de Datos, General..."
-                  value={form.nombre}
+                  value={form.name}
                   onChange={handleChange}
                 />
               </Form.Group>
@@ -134,9 +134,9 @@ const NewForum = () => {
                 <Form.Control
                   as="textarea"
                   rows={4}
-                  name="reglas"
+                  name="rules"
                   placeholder="Ej: Respetar a los demás usuarios. No publicar spam. Usar títulos descriptivos."
-                  value={form.reglas}
+                  value={form.rules}
                   onChange={handleChange}
                 />
               </Form.Group>

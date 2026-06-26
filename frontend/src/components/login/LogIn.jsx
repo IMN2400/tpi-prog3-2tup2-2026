@@ -9,12 +9,12 @@ const LogIn = () => {
   const { login } = useAuth();
 
   const [form, setForm] = useState({
-    correo: "",
+    email: "",
     password: "",
   });
 
   const [errors, setErrors] = useState({
-    correo: "",
+    email: "",
     password: "",
   });
 
@@ -23,16 +23,16 @@ const LogIn = () => {
 
   const validateForm = () => {
     const newErrors = {
-      correo: "",
+      email: "",
       password: "",
     };
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!form.correo.trim()) {
-      newErrors.correo = "El correo electrónico es obligatorio";
-    } else if (!emailRegex.test(form.correo)) {
-      newErrors.correo = "Ingrese un correo electrónico válido";
+    if (!form.email.trim()) {
+      newErrors.email = "El correo electrónico es obligatorio";
+    } else if (!emailRegex.test(form.email)) {
+      newErrors.email = "Ingrese un correo electrónico válido";
     }
 
     if (!form.password.trim()) {
@@ -43,7 +43,7 @@ const LogIn = () => {
 
     setErrors(newErrors);
 
-    return !newErrors.correo && !newErrors.password;
+    return !newErrors.email && !newErrors.password;
   };
 
   const handleChange = (event) => {
@@ -155,7 +155,7 @@ return (
                   )}
 
                   <Form onSubmit={handleSubmit} noValidate>
-                 <Form.Group className="mb-3" controlId="correo">
+                 <Form.Group className="mb-3" controlId="email">
                     <Form.Label className="login-label">
                       Correo electrónico
                     </Form.Label>
@@ -163,15 +163,15 @@ return (
                     <Form.Control
                       className="login-input"
                       type="text"
-                      name="correo"
+                      name="email"
                       placeholder="Ingrese su correo electrónico"
-                      value={form.correo}
+                      value={form.email}
                       onChange={handleChange}
-                      isInvalid={!!errors.correo}
+                      isInvalid={!!errors.email}
                     />
 
                     <Form.Control.Feedback type="invalid" className="login-error">
-                      {errors.correo}
+                      {errors.email}
                     </Form.Control.Feedback>
                   </Form.Group>
 

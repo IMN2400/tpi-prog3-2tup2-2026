@@ -6,7 +6,7 @@ export const getForums = async (req, res) => {
       include: [
         {
           model: Person,
-          attributes: ["id", "nombre", "correo", "rol"],
+          attributes: ["id", "name", "email", "rol"],
         },
         {
           model: Post,
@@ -33,7 +33,7 @@ export const getForumById = async (req, res) => {
     const forum = await Forum.findByPk(id, {
       include: {
         model: Person,
-        attributes: ["id", "nombre", "correo", "rol"],
+        attributes: ["id", "name", "email", "rol"],
       },
 });
 
@@ -54,12 +54,12 @@ export const getForumById = async (req, res) => {
 
 export const createForum = async (req, res) => {
   try {
-    const { nombre, descripcion, reglas } = req.body;
+    const { name, descripcion, rules } = req.body;
 
     const newForum = await Forum.create({
-      nombre,
+      name,
       descripcion,
-      reglas,
+      rules,
       fundadorId: req.user.id,
     });
 
@@ -75,7 +75,7 @@ export const createForum = async (req, res) => {
 export const updateForum = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion, reglas, estado } = req.body;
+    const { name, descripcion, rules, estado } = req.body;
 
     const forum = await Forum.findByPk(id);
 
@@ -87,9 +87,9 @@ export const updateForum = async (req, res) => {
 
     const dataToUpdate = {};
 
-    if (nombre !== undefined) dataToUpdate.nombre = nombre;
+    if (name !== undefined) dataToUpdate.name = name;
     if (descripcion !== undefined) dataToUpdate.descripcion = descripcion;
-    if (reglas !== undefined) dataToUpdate.reglas = reglas;
+    if (rules !== undefined) dataToUpdate.rules = rules;
     if (estado !== undefined) dataToUpdate.estado = estado;
 
     await forum.update(dataToUpdate);
