@@ -81,12 +81,14 @@ const ForumPage = () => {
     const toggleEditForumName = () => {
       setEditedName(forum?.name || "")
       setEditForumName(!editForumName);}
+
     const toggleEditForumRules = () => {
       setEditedRules(forum?.rules || "")
       setEditForumRules(!editForumRules);}
+
     const toggleEditForumDesc = () => {
       setEditedDesc(forum?.desc || "");
-      setEditForumDesct(!editForumRules);
+      setEditForumDesc(!editForumDesc);
     }
 
   //Función que maneja el editor de reglas:
@@ -115,6 +117,8 @@ const ForumPage = () => {
       throw new Error(
         data.message || data.error || "No se pudo editar el post");};
     setEditForumRules(false);
+    setEditForumName(false)
+    setEditForumDesc(false)
     setEditedRules("");
     setEditedName("");
     setEditLoading(false)
@@ -157,12 +161,52 @@ const ForumPage = () => {
 
         <div className="forum-detail-header">
           <div className="forum-detail-header-content">
-            <h1>{forum?.name || "Foro"}</h1>
+            {!!editForumName ? 
+                  <Form>
+                    <h6>Editar el nombre del foro</h6>
+                    <Form.Group>
+                      <Form.Control
+                        type="text"
+                        value={editedName}
+                        onChange={(event) => {
+                          setEditedName(event.target.value);
+                          setEditNameError("");
+                        }}
+                        isInvalid={!!editNameError}/>
+                      </Form.Group>
+                    <Button variant="secondary" disabled={editLoading} onClick={toggleEditForumName}>Cancelar</Button>&emsp;
+                    <Button variant="success" disabled={editLoading} onClick={handleUpdateForum}>Guardar</Button>
+                  </Form> : <h1>{forum?.name || "Foro"} &emsp;<Button
+                    variant="outline-success"
+                    size="sm"
+                    className="edit-button"
+                    hidden={!canEditForum || !!editForumName}
+                    onClick={toggleEditForumName}
+                    >Editar</Button></h1>
+                    }            
+            {!!editForumDesc ? 
+                  <Form>
+                    <h6>Editar la descripción del foro</h6>
+                    <Form.Group>
+                      <Form.Control
+                        as="textarea"
+                        rows={4}
+                        value={editedDesc}
+                        onChange={(event) => {
+                          setEditedDesc(event.target.value);
+                          setEditDescError("");
+                        }}
+                        isInvalid={!!editDescError}/>
+                      </Form.Group>
+                    <Button variant="secondary" disabled={editLoading} onClick={toggleEditForumDesc}>Cancelar</Button>&emsp;
+                    <Button variant="success" disabled={editLoading} onClick={handleUpdateForum}>Guardar</Button>
+                  </Form> : <p> {forum?.desc || "Espacio general para debatir temas de la comunidad."} &emsp;<Button
+                    variant="outline-success"
+                    size="sm" className="edit-button"
+                    hidden={!canEditForum || !!editForumDesc}
+                    onClick={toggleEditForumDesc}
+                    >Editar</Button> </p>}
 
-            <p>
-              {forum?.desc ||
-                "Espacio general para debatir temas de la comunidad."}
-            </p>
 
             <div className="forum-detail-meta">
               <span>Fundador: {forum?.Person?.name || "Admin"}</span>
@@ -249,10 +293,11 @@ const ForumPage = () => {
                   {!!editForumRules ? 
                   <Form>
                     <h6>Editar reglas del foro</h6>
-                    <p>Recuerde separar las reglas con un punto (.).</p>
+                    <p style={{color:'red'}}>Recuerde separar las reglas con un punto (.).</p>
                     <Form.Group>
                       <Form.Control
-                        type="text"
+                        as="textarea"
+                        rows={4}
                         value={editedRules}
                         onChange={(event) => {
                           setEditedRules(event.target.value);
@@ -261,6 +306,7 @@ const ForumPage = () => {
                         isInvalid={!!editRulesError}/>
                       </Form.Group>
                     <Button variant="secondary" disabled={editLoading} onClick={toggleEditForumRules}>Cancelar</Button>
+                    &emsp;
                     <Button variant="success" disabled={editLoading} onClick={handleUpdateForum}>Guardar</Button>
                   </Form> : <div><h6>Reglas del foro</h6>
                   <ul className="forum-detail-rules">
@@ -269,7 +315,8 @@ const ForumPage = () => {
                     ))}
                   </ul></div>}
                   <Button
-                    variant="success"
+                    variant="outline-success"
+                    size="sm"
                     hidden={!canEditForum || !!editForumRules}
                     onClick={toggleEditForumRules}
                     >Editar</Button>
