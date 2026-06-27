@@ -1,10 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-<<<<<<< HEAD
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../styles/toast.css";
-=======
->>>>>>> 234a7daa5ef2b48722607072f1745c8ca2b12fc0
 
 import Header from "../header/Header";
 import Footer from "../footer/Footer";
