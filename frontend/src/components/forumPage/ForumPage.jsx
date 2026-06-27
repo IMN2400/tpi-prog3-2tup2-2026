@@ -5,7 +5,7 @@ import { useRequireAuth } from "../../hooks/useRequireAuth";
 import "./ForumPage.css";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import {toast} from 'react-toastify'
+import { toast } from "react-toastify";
 
 const ForumPage = () => {
   // obtiene el id del foro desde la url
