@@ -1,5 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "../../styles/toast.css";
 
 import Header from "../header/Header";
 import Footer from "../footer/Footer";
@@ -54,7 +56,12 @@ const RoutesDoc = () => {
       </Routes>
 
       <Footer />
-      <ToastContainer />
+     <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        pauseOnHover
+        theme="colored"
+    />
     </BrowserRouter>
   );
 };

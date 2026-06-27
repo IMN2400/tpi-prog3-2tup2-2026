@@ -18,6 +18,19 @@ export const createBan = async (req, res) => {
             });
         }
 
+        const activeBan = await BanModel.findOne({
+            where: {
+                userId,
+                status: "activo",
+            },
+            });
+
+            if (activeBan) {
+            return res.status(400).json({
+                message: "Este usuario ya se encuentra baneado",
+            });
+            }
+
         const newBan = await BanModel.create({
             userId,
             adminId,

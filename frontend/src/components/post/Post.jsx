@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import "./Post.css";
 import { formatBodyText } from "../../services/imgUtils/imgUtils";
+
 
 const API_URL = "http://localhost:3000";
 
@@ -65,12 +67,21 @@ const Post = ({ postId }) => {
   const [expandedThreads, setExpandedThreads] = useState({});
   const [likedByMe, setLikedByMe] = useState(false);
 
+
+  const isBannedUser = (targetUser) => {
+    return targetUser?.status === false;
+  };
+
   const canBanUser = (targetUser) => {
     if (!isAdmin) {
       return false;
     }
 
     if (!targetUser?.id) {
+      return false;
+    } 
+
+    if (targetUser.status === false) {
       return false;
     }
 
@@ -181,11 +192,14 @@ const Post = ({ postId }) => {
           );
         }
 
-        alert(data.message || "Usuario convertido en ADMIN correctamente");
-
+        toast.success(data.message || "Usuario convertido en ADMIN correctamente", {
+        className: "toast-success-custom",
+        progressClassName: "toast-progress-custom",
+      });
         loadData();
       } catch (err) {
         setError(err.message);
+        toast.error(err.message || "No se pudo convertir el usuario en ADMIN");
       }
     });
   };
@@ -755,7 +769,16 @@ const Post = ({ postId }) => {
                 {getRoleLabel(role)}
               </span>
 
-              {canBanUser(comment.Person) && (
+              {isBannedUser(comment.Person) ? (
+              <button
+                type="button"
+                className="ban-user-link banned-user-link"
+                disabled
+              >
+                Baneado
+              </button>
+            ) : (
+              canBanUser(comment.Person) && (
                 <button
                   type="button"
                   className="ban-user-link"
@@ -763,7 +786,8 @@ const Post = ({ postId }) => {
                 >
                   Banear
                 </button>
-              )}
+              )
+            )}
 
               {canMakeAdmin(comment.Person) && (
                 <button
@@ -1005,7 +1029,16 @@ const Post = ({ postId }) => {
                 {getRoleLabel(authorRole)}
               </span>
 
-              {canBanUser(post.Person) && (
+              {isBannedUser(post.Person) ? (
+              <button
+                type="button"
+                className="ban-user-link banned-user-link"
+                disabled
+              >
+                Baneado
+              </button>
+            ) : (
+              canBanUser(post.Person) && (
                 <button
                   type="button"
                   className="ban-user-link"
@@ -1013,17 +1046,8 @@ const Post = ({ postId }) => {
                 >
                   Banear
                 </button>
-              )}
-
-              {canMakeAdmin(post.Person) && (
-                <button
-                  type="button"
-                  className="make-admin-link"
-                  onClick={() => handleMakeAdmin(post.Person)}
-                >
-                  Hacer admin
-                </button>
-              )}
+              )
+            )}
 
               <span className="post-main-dot">•</span>
 

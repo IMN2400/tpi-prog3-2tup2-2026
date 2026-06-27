@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Card, Col, Form, FormGroup, Row } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 
 const NewBan = () => {
@@ -18,7 +19,6 @@ const NewBan = () => {
   });
 
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -37,7 +37,6 @@ const NewBan = () => {
     });
 
     setError("");
-    setSuccess("");
   };
 
   const handleSubmit = async (e) => {
@@ -61,7 +60,6 @@ const NewBan = () => {
     try {
       setLoading(true);
       setError("");
-      setSuccess("");
 
       const response = await fetch("http://localhost:3000/bans", {
         method: "POST",
@@ -83,17 +81,18 @@ const NewBan = () => {
         throw new Error(data.message || "Error al crear el ban");
       }
 
-      setSuccess("Ban creado correctamente.");
+      toast.success("Usuario baneado correctamente", {
+      className: "toast-success-custom",
+      progressClassName: "toast-progress-custom",
+    });
 
-      setFormData({
-        userId: selectedUserId,
-        reason: "",
-        duration: "",
-      });
-      navigate("/main");
-
+      navigate(-1);
+      
     } catch (error) {
-      setError(error.message || "Error conectando con el servidor");
+        const message = error.message || "Error conectando con el servidor";
+
+        setError(message);
+        toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -106,7 +105,6 @@ const NewBan = () => {
           <h2 className="text-center mb-4">Nuevo Ban</h2>
 
           {error && <Alert variant="danger">{error}</Alert>}
-          {success && <Alert variant="success">{success}</Alert>}
 
           <Form onSubmit={handleSubmit}>
             <FormGroup className="mb-3">
