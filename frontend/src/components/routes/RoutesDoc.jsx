@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
 
 import Header from "../header/Header";
 import Footer from "../footer/Footer";
@@ -20,11 +19,14 @@ import NewPost from "../newPost/NewPost";
 import Bans from "../bans/Bans";
 import NewBans from "../bans/NewBans";
 import Users from "../usersList/UserList";
+import ProtectedOnlyAdmin from "../protected/ProtectedOnlyAdmin";
+import ProtectedOnlySysAdmin from "../protected/ProtectedOnlySysAdmin";
 
 const RoutesDoc = () => {
   return (
     <BrowserRouter>
       <Header />
+      
 
       <Routes>
         {/* Rutas públicas */}
@@ -39,14 +41,19 @@ const RoutesDoc = () => {
         <Route path="/forum/:forumId" element={<ForumPage />} />
         <Route path="/post/:postId" element={<PostPage />} />
 
-        {/* Rutas protegidas */}
+        {/* Rutas protegidas: solo usuarios logueados pueden entrar */}
         <Route element={<Protected />}>
-          <Route path="/newforum" element={<NewForum />} />
           <Route path="/forums/:forumId/posts/new" element={<NewPost />} />
-
-          <Route path="/bans" element={<Bans />} />
-          <Route path="/newban" element={<NewBans />} />
-          <Route path="/users" element={<Users />} />
+          {/* Ruta de SYSADMIN: solo SYSADMIN puede acceder*/}
+          <Route element={<ProtectedOnlySysAdmin />}>
+            <Route path="/newforum" element={<NewForum />} />
+          </Route>
+          {/* Rutas de Admin: solo ADMIN y SYSADMIN pueden acceder. */}
+          <Route element={<ProtectedOnlyAdmin />}>
+            <Route path="/bans" element={<Bans />} />
+            <Route path="/newban" element={<NewBans />} />
+            <Route path="/users" element={<Users />} />
+          </Route>
         </Route>
 
         {/* Ruta 404 */}
@@ -54,7 +61,6 @@ const RoutesDoc = () => {
       </Routes>
 
       <Footer />
-      <ToastContainer />
     </BrowserRouter>
   );
 };
