@@ -405,7 +405,10 @@ const handleConfirmMakeAdmin = async () => {
             data.message || data.error || "No se pudo editar el post"
           );
         }
-
+        toast.success("Post actualizado correctamente", {
+          className: "toast-success-custom",
+          progressClassName: "toast-progress-custom",
+        });
         setEditingPost(false);
         setEditPostTitle("");
         setEditPostBody("");
@@ -467,6 +470,11 @@ const handleConfirmMakeAdmin = async () => {
       if (!response.ok) {
         throw new Error(data.message || "No se pudo borrar el post");
       }
+
+      toast.success("El post ha sido eliminado correctamente", {
+        className: "toast-success-custom",
+        progressClassName: "toast-progress-custom",
+      });
 
       setDeletePostModal(false);
 
@@ -554,6 +562,11 @@ const handleConfirmMakeAdmin = async () => {
           throw new Error(data.message || "No se pudo crear el comentario");
         }
 
+        toast.success("Comentario publicado", {
+          className: "toast-success-custom",
+          progressClassName: "toast-progress-custom",
+        });
+
         setCommentText("");
         loadData();
       } catch (err) {
@@ -594,6 +607,11 @@ const handleConfirmMakeAdmin = async () => {
         if (!response.ok) {
           throw new Error(data.message || "No se pudo crear la respuesta");
         }
+        
+        toast.success("Respuesta añadida", {
+          className: "toast-success-custom",
+          progressClassName: "toast-progress-custom",
+        });
 
         setReplyText("");
         setReplyingToId(null);
@@ -672,6 +690,11 @@ const handleConfirmMakeAdmin = async () => {
         throw new Error(data.message || "No se pudo borrar el comentario");
       }
 
+      toast.success("El comentario ha sido borrado", {
+        className: "toast-success-custom",
+        progressClassName: "toast-progress-custom",
+      });
+
       setCommentToDelete(null);
       setReplyingToId(null);
       setReplyText("");
@@ -745,6 +768,11 @@ const handleConfirmMakeAdmin = async () => {
             data.message || data.error || "No se pudo editar el comentario"
           );
         }
+
+        toast.success("Comentario actualizado", {
+          className: "toast-success-custom",
+          progressClassName: "toast-progress-custom",
+        });
 
         setEditingCommentId(null);
         setEditCommentText("");

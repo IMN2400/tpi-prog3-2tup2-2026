@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Table } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 import "./Bans.css";
 
 const Bans = () => {
@@ -73,8 +74,14 @@ const Bans = () => {
             : item
         )
       );
+
+    toast.success("Usuario desbaneado correctamente", {
+      className: "toast-success-custom",
+      progressClassName: "toast-progress-custom",
+    });
+
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message || "No se pudo desbanear el usuario");
     } finally {
       setBanLoadingId(null);
     }

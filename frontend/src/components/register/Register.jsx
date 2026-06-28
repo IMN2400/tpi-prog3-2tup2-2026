@@ -1,5 +1,6 @@
 import { useState, useRef  } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import "../login/LogIn.css";
 
@@ -31,8 +32,6 @@ const Register = () => {
     confirmPassword: "",
   });
 
-
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
@@ -102,13 +101,10 @@ const Register = () => {
       [name]: "",
     });
 
-    setSuccess("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    setSuccess("");
 
     const newErrors = validateForm();
 
@@ -163,17 +159,18 @@ const Register = () => {
       const data = await response.json();
 
       if (!response.ok) {
-
         setErrors({
           ...errors,
           email: data.message || "No se pudo registrar el usuario",
         });
-
         emailRef.current?.focus();
         return;
       }
 
-      setSuccess("Usuario registrado correctamente");
+      toast.success("Usuario registrado correctamente", {
+        className: "toast-success-custom",
+        progressClassName: "toast-progress-custom",
+      });
 
       setTimeout(() => {
         navigate("/login");
@@ -326,12 +323,6 @@ const Register = () => {
                   >
                     {loading ? "Registrando..." : "Crear cuenta"}
                   </Button>
-
-                  {success && (
-                    <p className="text-success text-center mt-3 mb-0">
-                      {success}
-                    </p>
-                  )}
                 </Form>
                 <div className="login-footer">
                   <span>¿Ya tenés cuenta?</span>{" "}

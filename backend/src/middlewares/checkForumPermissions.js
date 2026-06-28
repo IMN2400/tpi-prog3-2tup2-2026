@@ -236,3 +236,112 @@ export const canEditForum = async (req, res, next) => {
     });
   }
 };
+
+export const canEditPost = async (req, res, next) => {
+  try {
+    const loggedUserId = req.user.id;
+
+    const person = await models.Person.findOne({
+      where: {
+        id: loggedUserId,
+        status: true,
+      },
+    });
+
+    if (!person) {
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
+    }
+
+    const post = await models.Post.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
+      include: [models.Person],
+    });
+
+    if (!post) {
+      return res.status(404).json({
+        message: "No se encontró el post",
+      });
+    }
+
+    const isOwner = Number(post.userId) === Number(person.id);
+
+    if (!isOwner) {
+      return res.status(403).json({
+        message: "No tenés permisos para editar este post",
+      });
+    }
+
+    req.user = person;
+    req.post = post;
+
+    next();
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al verificar permisos para editar el post",
+      error: error.message,
+    });
+  }
+};
+
+export const canDeletePost = async (req, res, next) => {
+  try {
+    const loggedUserId = req.user.id;
+
+    const person = await models.Person.findOne({
+      where: {
+        id: loggedUserId,
+        status: true,
+      },
+    });
+
+    if (!person) {
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
+    }
+
+    const post = await models.Post.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
+      include: [models.Person],
+    });
+
+    if (!post) {
+      return res.status(404).json({
+        message: "No se encontró el post",
+      });
+    }
+
+    const isSysAdmin = person.role === "SYSADMIN";
+    const isAdmin = person.role === "ADMIN";
+    const postAuthorIsSysAdmin = post.Person?.role === "SYSADMIN";
+
+    if (isSysAdmin) {
+      req.user = person;
+      req.post = post;
+      return next();
+    }
+
+    if (isAdmin && !postAuthorIsSysAdmin) {
+      req.user = person;
+      req.post = post;
+      return next();
+    }
+
+    return res.status(403).json({
+      message: "No tenés permisos para eliminar este post",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al verificar permisos para eliminar el post",
+      error: error.message,
+    });
+  }
+};
