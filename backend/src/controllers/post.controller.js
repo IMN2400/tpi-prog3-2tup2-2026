@@ -238,7 +238,7 @@ export const likesPost = async (req, res) => {
 
     if (!post) {
       return res.status(404).json({
-        error: "No se ha encontrado el post",
+        message: "No se ha encontrado el post",
       });
     }
 

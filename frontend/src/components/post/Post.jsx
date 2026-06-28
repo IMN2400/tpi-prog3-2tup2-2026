@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -226,42 +226,61 @@ const handleConfirmMakeAdmin = async () => {
   }
 };
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const loadData = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError("");
 
-      const postResponse = await fetch(`${API_URL}/posts/${postId}`);
-      const postData = await readJsonResponse(postResponse);
+    const postResponse = await fetch(`${API_URL}/posts/${postId}`);
+    const postData = await readJsonResponse(postResponse);
 
-      if (!postResponse.ok) {
-        throw new Error(postData.message || "No se pudo cargar el post");
-      }
+    if (!postResponse.ok) {
+      throw new Error(postData.message || "No se pudo cargar el post");
+    }
 
-      setPost(postData);
+    setPost(postData);
 
-      const commentsResponse = await fetch(`${API_URL}/posts/${postId}/comments`);
-      const commentsData = await readJsonResponse(commentsResponse);
+    const commentsResponse = await fetch(`${API_URL}/posts/${postId}/comments`);
+    const commentsData = await readJsonResponse(commentsResponse);
 
-      if (!commentsResponse.ok) {
+    if (!commentsResponse.ok) {
+      throw new Error(
+        commentsData.message || "No se pudieron cargar los comentarios"
+      );
+    }
+
+    setComments(commentsData);
+
+    if (token) {
+      const likeResponse = await fetch(`${API_URL}/posts/${postId}/my-like`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const likeData = await readJsonResponse(likeResponse);
+
+      if (!likeResponse.ok) {
         throw new Error(
-          commentsData.message || "No se pudieron cargar los comentarios"
+          likeData.message || "No se pudo cargar el estado del like"
         );
       }
 
-      setComments(commentsData);
-
+      setLikedByMe(!!likeData?.likedByMe);
+    } else {
       setLikedByMe(false);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+    }, [postId, token]);
 
   useEffect(() => {
     loadData();
-  }, [postId]);
+  }, [loadData]);
+
 
   const formatDate = (date) => {
     if (!date) {
@@ -491,44 +510,51 @@ const handleConfirmMakeAdmin = async () => {
   };
 
   const handleLikePost = () => {
-    requireAuth(async () => {
-      if (likeLoading) {
-        return;
+  requireAuth(async () => {
+    if (likeLoading) {
+      return;
+    }
+
+    try {
+      setLikeLoading(true);
+      setError("");
+
+      const response = await fetch(`${API_URL}/posts/${postId}/like`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await readJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "No se pudo actualizar el like de la publicación"
+        );
       }
 
-      try {
-        setLikeLoading(true);
-        setError("");
+      const nextLikedByMe = !!data?.likedByMe;
 
-        const response = await fetch(`${API_URL}/posts/${postId}/like`, {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      setLikedByMe(nextLikedByMe);
 
-        const data = await readJsonResponse(response);
-
-        if (!response.ok) {
-          throw new Error(
-            data.message || "No se pudo actualizar el like de la publicación"
-          );
+      setPost((prevPost) => {
+        if (!prevPost) {
+          return prevPost;
         }
 
-        setLikedByMe(true);
-
-        setPost((prevPost) => ({
+        return {
           ...prevPost,
           likeCount:
             data?.likeCount ??
-            data?.post?.likeCount ??
-            (prevPost?.likeCount || 0) + 1,
-        }));
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLikeLoading(false);
-      }
+            Math.max((prevPost.likeCount || 0) + (nextLikedByMe ? 1 : -1), 0),
+        };
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLikeLoading(false);
+    }
     });
   };
 
@@ -1167,11 +1193,11 @@ const handleConfirmMakeAdmin = async () => {
             <button
               type="button"
               onClick={handleLikePost}
-              disabled={likeLoading || likedByMe}
+              disabled={likeLoading}
               className={`post-like-button ${
                 likedByMe ? "post-like-active" : ""
               }`}
-              aria-label={likedByMe ? "Ya diste me gusta" : "Dar me gusta"}
+              aria-label={likedByMe ? "Quitar me gusta" : "Dar me gusta"}
             >
               <svg
                 className="post-like-icon"
@@ -1299,12 +1325,6 @@ const handleConfirmMakeAdmin = async () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-      <Modal
-        show={deletePostModal}
-        onHide={handleCloseDeletePostModal}
-        centered
-      ></Modal>
         <Modal
           show={deletePostModal}
           onHide={handleCloseDeletePostModal}
