@@ -1,6 +1,47 @@
 import BanModel from '../models/Bans.js';
 import { Person } from '../models/Person.js';
 
+const expireBanAndReactivateUser = async (ban) => {
+  const today = new Date();
+
+  const banDate = new Date(ban.date);
+  const expirationDate = new Date(banDate);
+
+  expirationDate.setDate(expirationDate.getDate() + ban.duration);
+
+  if (expirationDate < today && ban.status === "activo") {
+    await ban.update({
+      status: "expirado",
+    });
+  }
+
+  const updatedBan = await BanModel.findByPk(ban.id);
+
+  if (!updatedBan) {
+    return;
+   }
+
+  if (updatedBan.status === "expirado") {
+    const activeBan = await BanModel.findOne({
+      where: {
+        userId: updatedBan.userId,
+        status: "activo",
+      },
+    });
+
+    if (!activeBan) {
+      const bannedUser = await Person.findByPk(updatedBan.userId);
+
+      if (bannedUser && bannedUser.status === false) {
+        await bannedUser.update({
+          status: true,
+          dateBanLifted: null,
+        });
+      }
+    }
+  }
+};
+
 export const createBan = async (req, res) => {
     try {
         const { userId, adminId, reason, duration } = req.body;
@@ -11,12 +52,30 @@ export const createBan = async (req, res) => {
             });
         }
 
+        const durationNumber = Number(duration);
+
+        if (Number.isNaN(durationNumber) || durationNumber <= 0) {
+            return res.status(400).json({
+                message: "La duración del ban debe ser mayor a 0",
+            });
+            }
+
         const user = await Person.findByPk(userId);
         if (!user) {
             return res.status(404).json({
                 message: 'El usuario no existe'
             });
         }
+
+        const userBans = await BanModel.findAll({
+            where: {
+                userId,
+            },
+            });
+
+            await Promise.all(
+            userBans.map((ban) => expireBanAndReactivateUser(ban))
+            );
 
         const activeBan = await BanModel.findOne({
             where: {
@@ -35,12 +94,12 @@ export const createBan = async (req, res) => {
             userId,
             adminId,
             reason,
-            duration,
+            duration: durationNumber,
             date: new Date()
         });
 
         const dateBanLifted = new Date();
-        dateBanLifted.setDate(dateBanLifted.getDate() + duration);
+        dateBanLifted.setDate(dateBanLifted.getDate() + durationNumber);
 
         await user.update({
             timesBanned: (user.timesBanned || 0) + 1,
@@ -63,25 +122,16 @@ export const getBans = async (req, res) => {
   try {
     const bans = await BanModel.findAll();
 
-    const today = new Date();
-
-    for (const ban of bans) {
-      const banDate = new Date(ban.date);
-      const expirationDate = new Date(banDate);
-
-      expirationDate.setDate(expirationDate.getDate() + ban.duration);
-
-      if (expirationDate < today && ban.status === "activo") {
-        await ban.update({ status: "expirado" });
-      }
-    }
+    await Promise.all(
+      bans.map((ban) => expireBanAndReactivateUser(ban))
+    );
 
     const updatedBans = await BanModel.findAll({
       include: [
         {
           model: Person,
           as: "bannedUser",
-          attributes: ["id", "name", "email"],
+          attributes: ["id", "name", "email", "status", "dateBanLifted"],
         },
         {
           model: Person,
@@ -103,65 +153,36 @@ export const getBans = async (req, res) => {
 
 
 export const getBanByUser = async (req, res) => {
-    try {
+  try {
+    const { id } = req.params;
 
-        const { id } = req.params;
+    const bans = await BanModel.findAll({
+      where: {
+        userId: id,
+      },
+    });
 
-        const bans = await BanModel.findAll({
-            where: {
-                userId: id
-            }
-        });
+    await Promise.all(
+      bans.map((ban) => expireBanAndReactivateUser(ban))
+    );
 
-        const today =
-            new Date();
+    const updatedBans = await BanModel.findAll({
+      where: {
+        userId: id,
+      },
+    });
 
-        for (const ban of bans) {
-
-            const banDate =
-                new Date(ban.date);
-
-            const expirationDate =
-                new Date(banDate);
-
-            expirationDate.setDate(
-                expirationDate.getDate()
-                + ban.duration
-            );
-
-            if (
-                expirationDate < today &&
-                ban.status === 'activo'
-            ) {
-
-                await ban.update({
-                    status: 'expirado'
-                });
-            }
-        }
-
-        const updatedBans =
-            await BanModel.findAll({
-                where: {
-                    userId: id
-                }
-            });
-
-        res.json(updatedBans);
-
-
-    } catch (error) {
-        res.status(500).json({
-            message: 'Error al obtener los bans del usuario',
-            error: error.message
-        });
-    }
+    res.json(updatedBans);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al obtener los bans del usuario",
+      error: error.message,
+    });
+  }
 };
 
 export const updateBan = async (req, res) => {
-
     try {
-
         const { id } = req.params;
 
         const ban = await BanModel.findByPk(id);
@@ -175,18 +196,16 @@ export const updateBan = async (req, res) => {
         await ban.update(req.body);
 
         const user = await Person.findByPk(ban.userId);
+
         if (!user) {
             return res.status(404).json({
                 message: 'El usuario no existe'
             });
         }
 
-        const dateBanLifted = new Date();
-
         await user.update({
-            timesBanned: user.timesBanned - 1,
-            dateBanLifted,
-            status: true
+            dateBanLifted: null,
+            status: true,
         });
 
         res.status(200).json({

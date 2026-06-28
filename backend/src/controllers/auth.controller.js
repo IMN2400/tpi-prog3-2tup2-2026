@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Person } from "../models/index.js";
+import BanModel from "../models/Bans.js";
 
 const JWT_SECRET = "clave_temporal";
 
@@ -52,6 +53,72 @@ export const registerUser = async (req, res) => {
   }
 };
 
+const validateBanBeforeLogin = async (user) => {
+  const activeBans = await BanModel.findAll({
+    where: {
+      userId: user.id,
+      status: "activo",
+    },
+  });
+
+  await Promise.all(
+    activeBans.map(async (ban) => {
+      const today = new Date();
+
+      const banDate = new Date(ban.date);
+      const expirationDate = new Date(banDate);
+
+      expirationDate.setDate(expirationDate.getDate() + ban.duration);
+
+      if (expirationDate < today) {
+        await ban.update({
+          status: "expirado",
+        });
+      }
+    })
+  );
+
+  const activeBan = await BanModel.findOne({
+    where: {
+      userId: user.id,
+      status: "activo",
+    },
+  });
+
+  if (!activeBan) {
+    if (user.status === false) {
+      await user.update({
+        status: true,
+        dateBanLifted: null,
+      });
+    }
+
+    return {
+      isBanned: false,
+    };
+  }
+
+  const today = new Date();
+
+  const banDate = new Date(activeBan.date);
+  const expirationDate = new Date(banDate);
+
+  expirationDate.setDate(expirationDate.getDate() + activeBan.duration);
+
+  const diferencia = expirationDate - today;
+  const diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+
+  await user.update({
+    status: false,
+    dateBanLifted: expirationDate,
+  });
+
+  return {
+    isBanned: true,
+    diasRestantes,
+  };
+};
+
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -80,27 +147,18 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    if (user.status === false) {
-      const hoy = new Date();
-      const dateBanLifted = new Date(user.dateBanLifted);
+    const banValidation = await validateBanBeforeLogin(user);
 
-      if (dateBanLifted > hoy) {
-        const diferencia = dateBanLifted - hoy;
-        const diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
-
-        return res.status(403).json({
-          message: `Ha sido baneado, el ban se levantará en ${diasRestantes} día${
-            diasRestantes === 1 ? "" : "s"
-          }.`,
-          diasRestantes,
-        });
-      }
-
-      await user.update({
-        status: true,
-        dateBanLifted: null,
+    if (banValidation.isBanned) {
+      return res.status(403).json({
+        message: `Ha sido baneado, el ban se levantará en ${banValidation.diasRestantes} día${
+          banValidation.diasRestantes === 1 ? "" : "s"
+        }.`,
+        diasRestantes: banValidation.diasRestantes,
       });
     }
+
+    await user.reload();
 
     const token = jwt.sign(
       {

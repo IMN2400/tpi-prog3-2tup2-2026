@@ -135,42 +135,59 @@ export const canDeleteComment = async (req, res, next) => {
     const isAdmin = person.role === "ADMIN";
     const isSysAdmin = person.role === "SYSADMIN";
 
-    if (!isOwner && !isAdmin && !isSysAdmin) {
+    let idsToDelete = [comment.id];
+
+    const nestedCommentIds = await getNestedCommentIds(comment.id);
+    idsToDelete = [...nestedCommentIds, comment.id];
+
+    // Sysadmin puede borrar cualquier comentario
+    if (isSysAdmin) {
+      req.user = person;
+      req.comment = comment;
+      req.commentIdsToDelete = idsToDelete;
+      return next();
+    }
+
+    // el autor puede borrar su propio comentario
+    if (isOwner) {
+      req.user = person;
+      req.comment = comment;
+      req.commentIdsToDelete = idsToDelete;
+      return next();
+    }
+
+    // si no es dueño, admin ni sysadmin, no puede borrar
+    if (!isAdmin) {
       return res.status(403).json({
         message: "No tenés permisos para borrar este comentario",
       });
     }
 
-    if (isAdmin && comment.Person?.role === "SYSADMIN" && !isOwner) {
+    // Admin no puede borrar comentarios de sysadmin
+    if (comment.Person?.role === "SYSADMIN") {
       return res.status(403).json({
         message: "No tenés permisos para borrar comentarios de un SYSADMIN",
       });
     }
 
-    let idsToDelete = [comment.id];
-
-    if ((isAdmin || isSysAdmin) && !isOwner) {
-      const nestedCommentIds = await getNestedCommentIds(comment.id);
-      idsToDelete = [...nestedCommentIds, comment.id];
-
-      const commentsToDelete = await models.Comment.findAll({
-        where: {
-          id: {
-            [Op.in]: idsToDelete,
-          },
+    // Admin puede borrar un hilo que tenga comments de sysadmin
+    const commentsToDelete = await models.Comment.findAll({
+      where: {
+        id: {
+          [Op.in]: idsToDelete,
         },
-        include: [models.Person],
+      },
+      include: [models.Person],
+    });
+
+    const hasSysAdminComment = commentsToDelete.some(
+      (comment) => comment.Person?.role === "SYSADMIN"
+    );
+
+    if (hasSysAdminComment) {
+      return res.status(403).json({
+        message: "No tenés permisos para borrar comentarios de un SYSADMIN",
       });
-
-      const hasSysAdminComment = commentsToDelete.some(
-        (comment) => comment.Person?.role === "SYSADMIN"
-      );
-
-      if (isAdmin && hasSysAdminComment) {
-        return res.status(403).json({
-          message: "No tenés permisos para borrar comentarios de un SYSADMIN",
-        });
-      }
     }
 
     req.user = person;

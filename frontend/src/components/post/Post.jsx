@@ -52,6 +52,10 @@ const Post = ({ postId }) => {
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [deleteCommentError, setDeleteCommentError] = useState("");
 
+  const [adminUserToConfirm, setAdminUserToConfirm] = useState(null);
+  const [makeAdminLoading, setMakeAdminLoading] = useState(false);
+  const [makeAdminError, setMakeAdminError] = useState("");
+
   const [deletePostModal, setDeletePostModal] = useState(false);
   const [deletePostLoading, setDeletePostLoading] = useState(false);
   const [deletePostError, setDeletePostError] = useState("");
@@ -104,7 +108,9 @@ const Post = ({ postId }) => {
     if (!targetUser?.id) {
       return false;
     }
-
+    if (isBannedUser(targetUser)) {
+      return false;
+    }
     if (Number(targetUser.id) === Number(user?.id)) {
       return false;
     }
@@ -162,47 +168,63 @@ const Post = ({ postId }) => {
   };
 
   const handleMakeAdmin = (targetUser) => {
-    requireAuth(async () => {
-      const confirmed = window.confirm(
-        `¿Querés convertir a ${targetUser.name || "este usuario"} en ADMIN?`
+  requireAuth(() => {
+    setAdminUserToConfirm(targetUser);
+    setMakeAdminError("");
+  });
+};
+
+const handleCloseMakeAdminModal = () => {
+  if (makeAdminLoading) {
+    return;
+  }
+
+  setAdminUserToConfirm(null);
+  setMakeAdminError("");
+};
+
+const handleConfirmMakeAdmin = async () => {
+  if (!adminUserToConfirm) {
+    return;
+  }
+
+  try {
+    setMakeAdminLoading(true);
+    setMakeAdminError("");
+    setError("");
+
+    const response = await fetch(
+      `${API_URL}/persons/${adminUserToConfirm.id}/make-admin`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await readJsonResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "No se pudo convertir el usuario en ADMIN"
       );
+    }
 
-      if (!confirmed) {
-        return;
-      }
-
-      try {
-        setError("");
-
-        const response = await fetch(
-          `${API_URL}/persons/${targetUser.id}/make-admin`,
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await readJsonResponse(response);
-
-        if (!response.ok) {
-          throw new Error(
-            data.message || "No se pudo convertir el usuario en ADMIN"
-          );
-        }
-
-        toast.success(data.message || "Usuario convertido en ADMIN correctamente", {
-        className: "toast-success-custom",
-        progressClassName: "toast-progress-custom",
-      });
-        loadData();
-      } catch (err) {
-        setError(err.message);
-        toast.error(err.message || "No se pudo convertir el usuario en ADMIN");
-      }
+    toast.success(data.message || "Usuario convertido en ADMIN correctamente", {
+      className: "toast-success-custom",
+      progressClassName: "toast-progress-custom",
     });
-  };
+
+    setAdminUserToConfirm(null);
+    loadData();
+  } catch (err) {
+    setMakeAdminError(err.message);
+    toast.error(err.message || "No se pudo convertir el usuario en ADMIN");
+  } finally {
+    setMakeAdminLoading(false);
+  }
+};
 
   const loadData = async () => {
     try {
@@ -1209,7 +1231,52 @@ const Post = ({ postId }) => {
             commentTree.map((comment) => renderCommentNode(comment))
           )}
         </section>
+          <Modal
+        show={!!adminUserToConfirm}
+        onHide={handleCloseMakeAdminModal}
+        centered
+      >
+        <Modal.Header closeButton={!makeAdminLoading}>
+          <Modal.Title>Confirmar cambio de rol</Modal.Title>
+        </Modal.Header>
 
+        <Modal.Body>
+          <p className="mb-2">
+            ¿Estás seguro que querés convertir a{" "}
+            <strong>{adminUserToConfirm?.name || "este usuario"}</strong> en ADMIN?
+          </p>
+
+          {makeAdminError && (
+            <Alert variant="danger" className="mt-3 mb-0">
+              {makeAdminError}
+            </Alert>
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={handleCloseMakeAdminModal}
+            disabled={makeAdminLoading}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            variant="success"
+            onClick={handleConfirmMakeAdmin}
+            disabled={makeAdminLoading}
+          >
+            {makeAdminLoading ? "Convirtiendo..." : "Confirmar"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal
+        show={deletePostModal}
+        onHide={handleCloseDeletePostModal}
+        centered
+      ></Modal>
         <Modal
           show={deletePostModal}
           onHide={handleCloseDeletePostModal}

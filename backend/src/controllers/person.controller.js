@@ -123,6 +123,12 @@ export const makeAdmin = async (req, res) => {
         message: "No se puede modificar el rol de un SYSADMIN",
       });
     }
+    
+    if (person.status === false) {
+      return res.status(400).json({
+        message: "No se puede convertir en ADMIN a un usuario baneado",
+      });
+    }
 
     if (person.role === "ADMIN") {
       return res.json({
