@@ -77,17 +77,23 @@ const ForumPage = () => {
 
   // un booleano que es True si el usuario puede editar el foro
     const canEditForum = (isAdmin && user.id === forum?.founderId) || isSysAdmin || false
-  // funciones que abren o cierran los editores.
+     // funciones que abren o cierran los editores.
     const toggleEditForumName = () => {
       setEditedName(forum?.name || "")
+      setEditForumDesc(false);
+      setEditForumRules(false)
       setEditForumName(!editForumName);}
 
     const toggleEditForumRules = () => {
       setEditedRules(forum?.rules || "")
+      setEditForumDesc(false);
+      setEditForumName(false);
       setEditForumRules(!editForumRules);}
 
     const toggleEditForumDesc = () => {
       setEditedDesc(forum?.desc || "");
+      setEditForumRules(false);
+      setEditForumName(false);
       setEditForumDesc(!editForumDesc);
     }
 
@@ -129,9 +135,12 @@ const ForumPage = () => {
     fetchForums()
    } catch (error) {
     toast.error(error.message || error || "Hubo un error")
+   } finally {
+    setEditLoading(false);
    }
 
   }
+
 
   if (loadingForum || loadingPosts) {
     return (
