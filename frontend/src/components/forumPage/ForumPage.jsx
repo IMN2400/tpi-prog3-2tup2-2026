@@ -94,6 +94,9 @@ const ForumPage = () => {
   //Función que maneja el editor de reglas:
   const handleUpdateForum = async () => {
     setEditLoading(true)
+    setEditNameError("")
+    setEditRulesError("")
+    setEditDescError("")
    try {
      let newForum = {
       name: forum?.name,
@@ -101,6 +104,7 @@ const ForumPage = () => {
       rules: forum?.rules,
       status: forum?.status
     }
+
     if (editedName !== "") newForum.name = editedName || "";
     if (editedRules !== "") newForum.rules = editedRules || "";
     if (editedDesc !== "") newForum.desc = editedDesc || ""
@@ -124,7 +128,7 @@ const ForumPage = () => {
     setEditLoading(false)
     fetchForums()
    } catch (error) {
-    toast.error(error)
+    toast.error(error.message || error || "Hubo un error")
    }
 
   }
