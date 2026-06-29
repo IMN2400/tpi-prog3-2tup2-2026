@@ -8,6 +8,8 @@ import {
   updatePerson,
   deletePerson,
   makeAdmin,
+  getMyProfile,
+  updateMyProfile
 } from "../controllers/person.controller.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 import { canManagePersons, onlySysAdmin } from "../middlewares/checkPersonPermissions.js";
@@ -39,5 +41,17 @@ router.patch(
 );
 
 router.post("/persons", validateCreatePerson, createPerson);
+
+router.patch(
+  "/persons/me",
+  verifyToken,
+  updateMyProfile
+);
+
+router.get(
+    "/persons/me",
+    verifyToken,
+    getMyProfile
+);
 
 export default router;
