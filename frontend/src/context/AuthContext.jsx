@@ -1,5 +1,6 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 
 const AuthContext = createContext();
@@ -71,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 
   // Algo para mostrar cuando está loading.
   if (loading) {
-    return <div>Cargando...</div>; 
+    return <Spinner /> 
   }
 
   return (
