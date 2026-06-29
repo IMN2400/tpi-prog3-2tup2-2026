@@ -3,10 +3,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import "../login/LogIn.css";
+import { useAuth } from "../../context/AuthContext";
+import Redirecting from "../redirecting/Redirecting";
 
 const Register = () => {
   const navigate = useNavigate();
-
+  const {isAuthenticated} = useAuth()
   const nickRef = useRef(null);
   const nameRef = useRef(null);
   const emailRef = useRef(null);
@@ -186,9 +188,10 @@ const Register = () => {
       setLoading(false);
     }
   };
-
-  return (
-    <main className="login-page login-page-light">
+  if (isAuthenticated) {
+    navigate("/404")
+  }
+  return (<>{!isAuthenticated && <main className="login-page login-page-light">
       <Container>
         <Row className="justify-content-center">
           <Col xs={12} sm={10} md={8} lg={6} xl={5}>
@@ -333,7 +336,7 @@ const Register = () => {
           </Col>
         </Row>
       </Container>
-    </main>
+    </main>}</>
   );
 };
 
