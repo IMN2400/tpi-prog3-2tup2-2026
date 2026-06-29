@@ -1,4 +1,4 @@
-import models from "../models/index.js"
+import models from "../models/models.js"
 
 export const getPosts = async (req, res) => {
     try {
@@ -112,7 +112,12 @@ export const updatePost = async (req, res) => {
   try {
     const { title, body } = req.body;
 
-    const post = await models.Post.findByPk(req.params.id);
+    const post = await models.Post.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
+    });
 
     if (!post) {
       return res.status(404).json({
@@ -157,25 +162,64 @@ export const updatePost = async (req, res) => {
 
 export const deletearPost = async (req, res) => {
   try {
-    const post = await models.Post.findByPk(req.params.id, {
+    const loggedUser = await models.Person.findOne({
+      where: {
+        id: req.user.id,
+        status: true,
+      },
+    });
+
+    if (!loggedUser) {
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
+    }
+
+    const post = await models.Post.findOne({
+      where: {
+        id: req.params.id,
+        status: true,
+      },
       include: [models.Person],
     });
 
-    if (!post || !post.status) {
+    if (!post) {
       return res.status(404).json({
         message: "No se ha encontrado el post",
       });
     }
 
-    if (req.user.role === "ADMIN" && post.Person?.role === "SYSADMIN") {
+    const isSysAdmin = loggedUser.role === "SYSADMIN";
+    const isAdmin = loggedUser.role === "ADMIN";
+    const postAuthorIsSysAdmin = post.Person?.role === "SYSADMIN";
+
+    if (!isSysAdmin && !isAdmin) {
       return res.status(403).json({
-        message: "No tenés permisos",
+        message: "No tenés permisos para eliminar posts",
+      });
+    }
+
+    if (isAdmin && postAuthorIsSysAdmin) {
+      return res.status(403).json({
+        message: "No tenés permisos para eliminar un post de SYSADMIN",
       });
     }
 
     await post.update({
       status: false,
     });
+
+    await models.Comment.update(
+      {
+        status: false,
+      },
+      {
+        where: {
+          postId: post.id,
+          status: true,
+        },
+      }
+    );
 
     res.json({
       message: "Post dado de baja correctamente",
@@ -188,14 +232,13 @@ export const deletearPost = async (req, res) => {
   }
 };
 
-
 export const likesPost = async (req, res) => {
   try {
     const post = await models.Post.findByPk(req.params.id);
 
     if (!post) {
       return res.status(404).json({
-        error: "No se ha encontrado el post",
+        message: "No se ha encontrado el post",
       });
     }
 

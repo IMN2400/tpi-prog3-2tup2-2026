@@ -183,9 +183,7 @@ export const getBanByUser = async (req, res) => {
 };
 
 export const updateBan = async (req, res) => {
-
     try {
-
         const { id } = req.params;
 
         const ban = await BanModel.findByPk(id);
@@ -206,6 +204,7 @@ export const updateBan = async (req, res) => {
 
         await ban.update(req.body);
 
+<<<<<<< HEAD
         if (oldDuration !== ban.duration || oldStatus !== ban.status) {
             const user = await Person.findByPk(ban.userId);
             if (!user) {
@@ -243,6 +242,21 @@ export const updateBan = async (req, res) => {
                 }
             }
         }
+=======
+        const user = await Person.findByPk(ban.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'El usuario no existe'
+            });
+        }
+
+        await user.update({
+            dateBanLifted: null,
+            status: true,
+        });
+
+>>>>>>> origin/main
         res.status(200).json({
             message: 'Ban actualizado',
             ban

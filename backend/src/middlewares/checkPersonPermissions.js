@@ -1,4 +1,4 @@
-import { Person } from "../models/index.js";
+import { Person } from "../models/models.js";
 
 export const canManagePersons = async (req, res, next) => {
   try {

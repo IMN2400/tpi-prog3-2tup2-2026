@@ -592,3 +592,10 @@
   color: #7a271a !important;
   text-decoration: underline;
 }
+.banned-user-link {
+  cursor: not-allowed !important;
+  opacity: 0.75;
+  color: #084f27 !important;
+  border-color: #084f27 !important;
+  background-color: #e8f5ee !important;
+}

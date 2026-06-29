@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import "./Post.css";
 import { formatBodyText } from "../../services/imgUtils/imgUtils";
+
 
 const API_URL = "http://localhost:3000";
 
@@ -50,6 +52,10 @@ const Post = ({ postId }) => {
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [deleteCommentError, setDeleteCommentError] = useState("");
 
+  const [adminUserToConfirm, setAdminUserToConfirm] = useState(null);
+  const [makeAdminLoading, setMakeAdminLoading] = useState(false);
+  const [makeAdminError, setMakeAdminError] = useState("");
+
   const [deletePostModal, setDeletePostModal] = useState(false);
   const [deletePostLoading, setDeletePostLoading] = useState(false);
   const [deletePostError, setDeletePostError] = useState("");
@@ -65,12 +71,21 @@ const Post = ({ postId }) => {
   const [expandedThreads, setExpandedThreads] = useState({});
   const [likedByMe, setLikedByMe] = useState(false);
 
+
+  const isBannedUser = (targetUser) => {
+    return targetUser?.status === false;
+  };
+
   const canBanUser = (targetUser) => {
     if (!isAdmin) {
       return false;
     }
 
     if (!targetUser?.id) {
+      return false;
+    } 
+
+    if (targetUser.status === false) {
       return false;
     }
 
@@ -93,7 +108,9 @@ const Post = ({ postId }) => {
     if (!targetUser?.id) {
       return false;
     }
-
+    if (isBannedUser(targetUser)) {
+      return false;
+    }
     if (Number(targetUser.id) === Number(user?.id)) {
       return false;
     }
@@ -151,81 +168,119 @@ const Post = ({ postId }) => {
   };
 
   const handleMakeAdmin = (targetUser) => {
-    requireAuth(async () => {
-      const confirmed = window.confirm(
-        `¿Querés convertir a ${targetUser.name || "este usuario"} en ADMIN?`
+  requireAuth(() => {
+    setAdminUserToConfirm(targetUser);
+    setMakeAdminError("");
+  });
+};
+
+const handleCloseMakeAdminModal = () => {
+  if (makeAdminLoading) {
+    return;
+  }
+
+  setAdminUserToConfirm(null);
+  setMakeAdminError("");
+};
+
+const handleConfirmMakeAdmin = async () => {
+  if (!adminUserToConfirm) {
+    return;
+  }
+
+  try {
+    setMakeAdminLoading(true);
+    setMakeAdminError("");
+    setError("");
+
+    const response = await fetch(
+      `${API_URL}/persons/${adminUserToConfirm.id}/make-admin`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await readJsonResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "No se pudo convertir el usuario en ADMIN"
       );
-
-      if (!confirmed) {
-        return;
-      }
-
-      try {
-        setError("");
-
-        const response = await fetch(
-          `${API_URL}/persons/${targetUser.id}/make-admin`,
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await readJsonResponse(response);
-
-        if (!response.ok) {
-          throw new Error(
-            data.message || "No se pudo convertir el usuario en ADMIN"
-          );
-        }
-
-        alert(data.message || "Usuario convertido en ADMIN correctamente");
-
-        loadData();
-      } catch (err) {
-        setError(err.message);
-      }
-    });
-  };
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const postResponse = await fetch(`${API_URL}/posts/${postId}`);
-      const postData = await readJsonResponse(postResponse);
-
-      if (!postResponse.ok) {
-        throw new Error(postData.message || "No se pudo cargar el post");
-      }
-
-      setPost(postData);
-
-      const commentsResponse = await fetch(`${API_URL}/posts/${postId}/comments`);
-      const commentsData = await readJsonResponse(commentsResponse);
-
-      if (!commentsResponse.ok) {
-        throw new Error(
-          commentsData.message || "No se pudieron cargar los comentarios"
-        );
-      }
-
-      setComments(commentsData);
-
-      setLikedByMe(false);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
     }
-  };
+
+    toast.success(data.message || "Usuario convertido en ADMIN correctamente", {
+      className: "toast-success-custom",
+      progressClassName: "toast-progress-custom",
+    });
+
+    setAdminUserToConfirm(null);
+    loadData();
+  } catch (err) {
+    setMakeAdminError(err.message);
+    toast.error(err.message || "No se pudo convertir el usuario en ADMIN");
+  } finally {
+    setMakeAdminLoading(false);
+  }
+};
+
+  const loadData = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError("");
+
+    const postResponse = await fetch(`${API_URL}/posts/${postId}`);
+    const postData = await readJsonResponse(postResponse);
+
+    if (!postResponse.ok) {
+      throw new Error(postData.message || "No se pudo cargar el post");
+    }
+
+    setPost(postData);
+
+    const commentsResponse = await fetch(`${API_URL}/posts/${postId}/comments`);
+    const commentsData = await readJsonResponse(commentsResponse);
+
+    if (!commentsResponse.ok) {
+      throw new Error(
+        commentsData.message || "No se pudieron cargar los comentarios"
+      );
+    }
+
+    setComments(commentsData);
+
+    if (token) {
+      const likeResponse = await fetch(`${API_URL}/posts/${postId}/my-like`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const likeData = await readJsonResponse(likeResponse);
+
+      if (!likeResponse.ok) {
+        throw new Error(
+          likeData.message || "No se pudo cargar el estado del like"
+        );
+      }
+
+      setLikedByMe(!!likeData?.likedByMe);
+    } else {
+      setLikedByMe(false);
+    }
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+    }, [postId, token]);
 
   useEffect(() => {
     loadData();
-  }, [postId]);
+  }, [loadData]);
+
 
   const formatDate = (date) => {
     if (!date) {
@@ -369,7 +424,10 @@ const Post = ({ postId }) => {
             data.message || data.error || "No se pudo editar el post"
           );
         }
-
+        toast.success("Post actualizado correctamente", {
+          className: "toast-success-custom",
+          progressClassName: "toast-progress-custom",
+        });
         setEditingPost(false);
         setEditPostTitle("");
         setEditPostBody("");
@@ -432,6 +490,11 @@ const Post = ({ postId }) => {
         throw new Error(data.message || "No se pudo borrar el post");
       }
 
+      toast.success("El post ha sido eliminado correctamente", {
+        className: "toast-success-custom",
+        progressClassName: "toast-progress-custom",
+      });
+
       setDeletePostModal(false);
 
       if (forumId) {
@@ -447,44 +510,51 @@ const Post = ({ postId }) => {
   };
 
   const handleLikePost = () => {
-    requireAuth(async () => {
-      if (likeLoading) {
-        return;
+  requireAuth(async () => {
+    if (likeLoading) {
+      return;
+    }
+
+    try {
+      setLikeLoading(true);
+      setError("");
+
+      const response = await fetch(`${API_URL}/posts/${postId}/like`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await readJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "No se pudo actualizar el like de la publicación"
+        );
       }
 
-      try {
-        setLikeLoading(true);
-        setError("");
+      const nextLikedByMe = !!data?.likedByMe;
 
-        const response = await fetch(`${API_URL}/posts/${postId}/like`, {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      setLikedByMe(nextLikedByMe);
 
-        const data = await readJsonResponse(response);
-
-        if (!response.ok) {
-          throw new Error(
-            data.message || "No se pudo actualizar el like de la publicación"
-          );
+      setPost((prevPost) => {
+        if (!prevPost) {
+          return prevPost;
         }
 
-        setLikedByMe(true);
-
-        setPost((prevPost) => ({
+        return {
           ...prevPost,
           likeCount:
             data?.likeCount ??
-            data?.post?.likeCount ??
-            (prevPost?.likeCount || 0) + 1,
-        }));
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLikeLoading(false);
-      }
+            Math.max((prevPost.likeCount || 0) + (nextLikedByMe ? 1 : -1), 0),
+        };
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLikeLoading(false);
+    }
     });
   };
 
@@ -517,6 +587,11 @@ const Post = ({ postId }) => {
         if (!response.ok) {
           throw new Error(data.message || "No se pudo crear el comentario");
         }
+
+        toast.success("Comentario publicado", {
+          className: "toast-success-custom",
+          progressClassName: "toast-progress-custom",
+        });
 
         setCommentText("");
         loadData();
@@ -558,6 +633,11 @@ const Post = ({ postId }) => {
         if (!response.ok) {
           throw new Error(data.message || "No se pudo crear la respuesta");
         }
+        
+        toast.success("Respuesta añadida", {
+          className: "toast-success-custom",
+          progressClassName: "toast-progress-custom",
+        });
 
         setReplyText("");
         setReplyingToId(null);
@@ -636,6 +716,11 @@ const Post = ({ postId }) => {
         throw new Error(data.message || "No se pudo borrar el comentario");
       }
 
+      toast.success("El comentario ha sido borrado", {
+        className: "toast-success-custom",
+        progressClassName: "toast-progress-custom",
+      });
+
       setCommentToDelete(null);
       setReplyingToId(null);
       setReplyText("");
@@ -710,6 +795,11 @@ const Post = ({ postId }) => {
           );
         }
 
+        toast.success("Comentario actualizado", {
+          className: "toast-success-custom",
+          progressClassName: "toast-progress-custom",
+        });
+
         setEditingCommentId(null);
         setEditCommentText("");
         loadData();
@@ -755,7 +845,16 @@ const Post = ({ postId }) => {
                 {getRoleLabel(role)}
               </span>
 
-              {canBanUser(comment.Person) && (
+              {isBannedUser(comment.Person) ? (
+              <button
+                type="button"
+                className="ban-user-link banned-user-link"
+                disabled
+              >
+                Baneado
+              </button>
+            ) : (
+              canBanUser(comment.Person) && (
                 <button
                   type="button"
                   className="ban-user-link"
@@ -763,7 +862,8 @@ const Post = ({ postId }) => {
                 >
                   Banear
                 </button>
-              )}
+              )
+            )}
 
               {canMakeAdmin(comment.Person) && (
                 <button
@@ -1005,7 +1105,16 @@ const Post = ({ postId }) => {
                 {getRoleLabel(authorRole)}
               </span>
 
-              {canBanUser(post.Person) && (
+              {isBannedUser(post.Person) ? (
+              <button
+                type="button"
+                className="ban-user-link banned-user-link"
+                disabled
+              >
+                Baneado
+              </button>
+            ) : (
+              canBanUser(post.Person) && (
                 <button
                   type="button"
                   className="ban-user-link"
@@ -1013,17 +1122,8 @@ const Post = ({ postId }) => {
                 >
                   Banear
                 </button>
-              )}
-
-              {canMakeAdmin(post.Person) && (
-                <button
-                  type="button"
-                  className="make-admin-link"
-                  onClick={() => handleMakeAdmin(post.Person)}
-                >
-                  Hacer admin
-                </button>
-              )}
+              )
+            )}
 
               <span className="post-main-dot">•</span>
 
@@ -1093,11 +1193,11 @@ const Post = ({ postId }) => {
             <button
               type="button"
               onClick={handleLikePost}
-              disabled={likeLoading || likedByMe}
+              disabled={likeLoading}
               className={`post-like-button ${
                 likedByMe ? "post-like-active" : ""
               }`}
-              aria-label={likedByMe ? "Ya diste me gusta" : "Dar me gusta"}
+              aria-label={likedByMe ? "Quitar me gusta" : "Dar me gusta"}
             >
               <svg
                 className="post-like-icon"
@@ -1185,7 +1285,46 @@ const Post = ({ postId }) => {
             commentTree.map((comment) => renderCommentNode(comment))
           )}
         </section>
+          <Modal
+        show={!!adminUserToConfirm}
+        onHide={handleCloseMakeAdminModal}
+        centered
+      >
+        <Modal.Header closeButton={!makeAdminLoading}>
+          <Modal.Title>Confirmar cambio de rol</Modal.Title>
+        </Modal.Header>
 
+        <Modal.Body>
+          <p className="mb-2">
+            ¿Estás seguro que querés convertir a{" "}
+            <strong>{adminUserToConfirm?.name || "este usuario"}</strong> en ADMIN?
+          </p>
+
+          {makeAdminError && (
+            <Alert variant="danger" className="mt-3 mb-0">
+              {makeAdminError}
+            </Alert>
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={handleCloseMakeAdminModal}
+            disabled={makeAdminLoading}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            variant="success"
+            onClick={handleConfirmMakeAdmin}
+            disabled={makeAdminLoading}
+          >
+            {makeAdminLoading ? "Convirtiendo..." : "Confirmar"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
         <Modal
           show={deletePostModal}
           onHide={handleCloseDeletePostModal}

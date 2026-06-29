@@ -9,7 +9,9 @@ import {
   likesPost,
   getMyPostLike,
 } from "../controllers/post.controller.js";
-import { onlyAdminOrSysadmin } from "../middlewares/checkForumPermissions.js";
+import { 
+  canEditPost,
+  canDeletePost, } from "../middlewares/checkForumPermissions.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
 const router = Router();
@@ -21,8 +23,8 @@ router.get("/forums/:forumId/posts", getPostByForum);
 
 router.post("/forums/:forumId/posts", verifyToken, createPost);
 
-router.put("/posts/:id", verifyToken, updatePost);
-router.delete("/posts/:id", verifyToken, onlyAdminOrSysadmin, deletearPost);
+router.put("/posts/:id", verifyToken, canEditPost, updatePost);
+router.delete("/posts/:id", verifyToken, canDeletePost, deletearPost);
 router.patch("/posts/:id/like", verifyToken, likesPost);
 
 export default router;

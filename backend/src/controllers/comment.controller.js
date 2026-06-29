@@ -1,4 +1,4 @@
-import models from "../models/index.js"
+import models from "../models/models.js"
 import { Op } from "sequelize";
 
 export const getAllComments = async (req, res) => {

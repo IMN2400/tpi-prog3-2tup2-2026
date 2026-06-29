@@ -11,7 +11,7 @@ import {
   validateUpdateForum,
 } from "../middlewares/forum.validation.js";
 
-import { onlyAdminOrSysadmin, onlySysadmin } from "../middlewares/checkForumPermissions.js";
+import { onlyAdminOrSysadmin, onlySysadmin, canEditForum } from "../middlewares/checkForumPermissions.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
 
@@ -33,6 +33,7 @@ router.put(
   "/forums/:id",
   verifyToken,
   onlyAdminOrSysadmin,
+  canEditForum,
   validateUpdateForum, 
   updateForum, 
 );

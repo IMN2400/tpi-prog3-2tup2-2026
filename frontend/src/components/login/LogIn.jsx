@@ -91,6 +91,28 @@ const showLoginError = (message) => {
     return;
   }
 
+  if (message?.toLowerCase().includes("baneado")) {
+    setErrorGeneral(message);
+
+    setErrors({
+      email: "",
+      password: "",
+    });
+
+    return;
+  }
+
+  if (message) {
+    setErrorGeneral(message);
+
+    setErrors({
+      email: "",
+      password: "",
+    });
+
+    return;
+  }
+
   setErrorGeneral("Correo o contraseña incorrectos");
 
   setErrors({
@@ -130,10 +152,10 @@ const handleSubmit = async (event) => {
       body: JSON.stringify(form),
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      showLoginError(data.message);
+      showLoginError(data.message || "No se pudo iniciar sesión");
       return;
     }
 
@@ -142,7 +164,7 @@ const handleSubmit = async (event) => {
     navigate("/");
 
   } catch (error) {
-      showLoginError();
+    showLoginError("No se pudo conectar con el servidor");
   } finally {
       setLoading(false);
     }
