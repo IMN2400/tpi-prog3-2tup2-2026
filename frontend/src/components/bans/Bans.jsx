@@ -2,10 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Table, Modal } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
-<<<<<<< HEAD
 import EditBan from "../bans/BanModification"
-=======
->>>>>>> origin/main
 import "./Bans.css";
 
 const Bans = () => {
@@ -98,17 +95,10 @@ const Bans = () => {
         )
       );
 
-<<<<<<< HEAD
       toast.success("Usuario desbaneado correctamente", {
         className: "toast-success-custom",
         progressClassName: "toast-progress-custom",
       });
-=======
-    toast.success("Usuario desbaneado correctamente", {
-      className: "toast-success-custom",
-      progressClassName: "toast-progress-custom",
-    });
->>>>>>> origin/main
 
     } catch (error) {
       toast.error(error.message || "No se pudo desbanear el usuario");

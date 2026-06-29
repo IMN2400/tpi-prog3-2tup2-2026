@@ -22,7 +22,7 @@ import NewPost from "../newPost/NewPost";
 import Bans from "../bans/Bans";
 import NewBans from "../bans/NewBans";
 import Users from "../usersList/UserList";
-import UserEdit from "../Users/UserEdit";
+import UserEdit from "../users/UserEdit";
 import ProtectedOnlyAdmin from "../protected/ProtectedOnlyAdmin";
 import ProtectedOnlySysAdmin from "../protected/ProtectedOnlySysAdmin";
 
