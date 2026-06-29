@@ -8,6 +8,8 @@ import {
   updatePerson,
   deletePerson,
   makeAdmin,
+  getMyProfile,
+  updateMyProfile
 } from "../controllers/person.controller.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 import { canManagePersons, onlySysAdmin } from "../middlewares/checkPersonPermissions.js";
@@ -15,6 +17,20 @@ import { canManagePersons, onlySysAdmin } from "../middlewares/checkPersonPermis
 const router = Router();
 
 router.get("/persons", getPersons);
+
+router.get(
+    "/persons/me",
+    verifyToken,
+    getMyProfile
+);
+
+router.patch(
+  "/persons/me",
+  verifyToken,
+  validateUpdatePerson,
+  updateMyProfile
+);
+
 router.get("/persons/:id", getPersonById);
 
 router.put(
@@ -39,5 +55,6 @@ router.patch(
 );
 
 router.post("/persons", validateCreatePerson, createPerson);
+
 
 export default router;

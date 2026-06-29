@@ -179,3 +179,52 @@ export const deletePerson = async (req, res) => {
     });
   }
 };
+
+
+export const updateMyProfile = async (req, res) => {
+    try {
+
+        const userId = req.user.id;
+
+        const person = await Person.findByPk(userId);
+
+        if (!person) {
+            return res.status(404).json({
+                message: "Usuario no encontrado"
+            });
+        }
+
+        const { name, age, email, password } = req.body;
+
+        const dataToUpdate = {};
+
+        if (name !== undefined) dataToUpdate.name = name;
+        if (age !== undefined) dataToUpdate.age = age;
+        if (email !== undefined) dataToUpdate.email = email;
+        if (password !== undefined) dataToUpdate.password = password;
+
+        await person.update(dataToUpdate);
+
+        const personResponse = person.toJSON();
+        delete personResponse.password;
+
+        res.json({
+            message: "Perfil actualizado correctamente",
+            person: personResponse
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error al actualizar el perfil",
+            error: error.message
+        });
+    }
+};
+
+export const getMyProfile = async (req, res) => {
+    const person = await Person.findByPk(req.user.id, {
+        attributes: { exclude: ["password"] }
+    });
+
+    res.json(person);
+};

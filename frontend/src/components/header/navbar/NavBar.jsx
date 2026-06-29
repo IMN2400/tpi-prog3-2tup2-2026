@@ -104,6 +104,10 @@ const NavBar = () => {
                   className="app-navbar-username app-navbar-dropdown"
                   title={user?.name || "Usuario"}
                 >
+                  <Dropdown.Item as={Link} to="/user/edit">
+                    Editar mi informacion
+                  </Dropdown.Item>
+
                   <Dropdown.Item onClick={handleLogout}>
                     Cerrar sesión
                   </Dropdown.Item>

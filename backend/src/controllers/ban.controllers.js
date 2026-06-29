@@ -193,9 +193,56 @@ export const updateBan = async (req, res) => {
                 message: 'Ban no encontrado'
             });
         }
+        const oldDuration = ban.duration;
+        const oldStatus = ban.status;
+
+        const banDate = new Date(ban.date);
+        const today = new Date();
+        const daysElapsed = Math.floor(
+            (today - banDate) / (1000 * 60 * 60 * 24)
+        );
 
         await ban.update(req.body);
 
+<<<<<<< HEAD
+        if (oldDuration !== ban.duration || oldStatus !== ban.status) {
+            const user = await Person.findByPk(ban.userId);
+            if (!user) {
+                return res.status(404).json({
+                    message: 'El usuario no existe'
+                });
+            }
+
+            if (oldStatus !== "desbaneado" && ban.status === "desbaneado") {
+                const dateBanLifted = new Date();
+
+                await user.update({
+                    timesBanned: Math.max(user.timesBanned - 1, 0),
+                    dateBanLifted: null,
+                    status: true
+                });
+            } else {
+                const banDate = new Date(ban.date);
+
+                const dateBanLifted = new Date(banDate);
+
+                dateBanLifted.setDate(dateBanLifted.getDate() + ban.duration);
+
+                const today = new Date();
+
+                if (today < dateBanLifted) {
+                    await user.update({
+                        dateBanLifted,
+                    });
+                } else {
+                    await user.update({
+                        dateBanLifted,
+                        status: true
+                    })
+                }
+            }
+        }
+=======
         const user = await Person.findByPk(ban.userId);
 
         if (!user) {
@@ -209,6 +256,7 @@ export const updateBan = async (req, res) => {
             status: true,
         });
 
+>>>>>>> origin/main
         res.status(200).json({
             message: 'Ban actualizado',
             ban

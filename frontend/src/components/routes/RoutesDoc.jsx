@@ -22,6 +22,7 @@ import NewPost from "../newPost/NewPost";
 import Bans from "../bans/Bans";
 import NewBans from "../bans/NewBans";
 import Users from "../usersList/UserList";
+import UserEdit from "../Users/UserEdit";
 import ProtectedOnlyAdmin from "../protected/ProtectedOnlyAdmin";
 import ProtectedOnlySysAdmin from "../protected/ProtectedOnlySysAdmin";
 
@@ -46,6 +47,7 @@ const RoutesDoc = () => {
 
         {/* Rutas protegidas: solo usuarios logueados pueden entrar */}
         <Route element={<Protected />}>
+          <Route path="/user/edit" element={<UserEdit />} />
           <Route path="/forums/:forumId/posts/new" element={<NewPost />} />
           {/* Ruta de SYSADMIN: solo SYSADMIN puede acceder*/}
           <Route element={<ProtectedOnlySysAdmin />}>
