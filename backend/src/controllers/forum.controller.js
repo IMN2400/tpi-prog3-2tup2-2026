@@ -1,4 +1,4 @@
-import { Forum, Person, Post, Comment } from "../models/index.js";
+import { Forum, Person, Post, Comment } from "../models/models.js";
 
 export const getForums = async (req, res) => {
   try {

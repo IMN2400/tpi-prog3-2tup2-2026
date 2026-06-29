@@ -1,5 +1,5 @@
-import { Person, Forum } from "../models/index.js";
-import models from "../models/index.js";
+import { Person, Forum } from "../models/models.js";
+import models from "../models/models.js";
 import { Op } from "sequelize";
 
 export const onlyAdminOrSysadmin = async (req, res, next) => {

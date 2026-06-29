@@ -1,4 +1,4 @@
-import models from "../models/index.js"
+import models from "../models/models.js"
 
 export const getPosts = async (req, res) => {
     try {

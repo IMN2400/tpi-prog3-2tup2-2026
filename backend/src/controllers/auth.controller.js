@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Person } from "../models/index.js";
+import { Person } from "../models/models.js";
 import BanModel from "../models/Bans.js";
 
 const JWT_SECRET = "clave_temporal";

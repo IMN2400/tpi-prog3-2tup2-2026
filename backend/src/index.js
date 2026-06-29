@@ -3,7 +3,7 @@ import morgan from "morgan";
 import { sequelize } from "./config/database.js";
 import personRoutes from "./routes/person.routes.js";
 import forumRoutes from "./routes/forum.routes.js";
-import "./models/index.js";
+import "./models/models.js";
 import authRoutes from "./routes/auth.routes.js";
 import banRoutes from "./routes/ban.routes.js"
 import commentRoutes from "./routes/comment.routes.js";
