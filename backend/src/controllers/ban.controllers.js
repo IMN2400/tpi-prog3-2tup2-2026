@@ -46,6 +46,7 @@ export const createBan = async (req, res) => {
     try {
         const { userId, reason, duration } = req.body;
         const adminId = req.user.id;
+        const adminRole = req.user.role;
 
         if (!userId || !reason || !duration) {
           return res.status(400).json({
@@ -66,6 +67,16 @@ export const createBan = async (req, res) => {
             return res.status(404).json({
                 message: 'El usuario no existe'
             });
+        }
+        if (user.role === "SYSADMIN") {
+            return res.status(403).json({
+              message: 'No se puede banear a un SYSADMIN.'
+            })
+        }
+        if (user.role === "ADMIN" && adminRole !== "SYSADMIN") {
+          return res.status(401).json({
+            message: 'No tiene la autorización para banear a otro admin.'
+          })
         }
 
         const userBans = await BanModel.findAll({
@@ -192,6 +203,13 @@ export const updateBan = async (req, res) => {
             return res.status(404).json({
                 message: 'Ban no encontrado'
             });
+        }
+        const banAdmin = await Person.findByPk(ban.adminId);
+        const banEditor = req.user; 
+        if (!!banAdmin && banAdmin.role === "SYSADMIN" && banEditor.role !== "SYSADMIN") {
+          return res.status(401).json({
+            message: 'No tiene la autorización necesaria para modificar este ban.'
+          })
         }
         const oldDuration = ban.duration;
         const oldStatus = ban.status;
