@@ -8,6 +8,9 @@ import {
   DropdownButton,
   Modal,
   ModalFooter,
+  ButtonGroup,
+  DropdownMenu,
+  DropdownHeader,
 } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -23,7 +26,9 @@ const NavBar = () => {
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
   const [deleteAccountError, setDeleteAccountError] = useState("");
 
-  const { user, isAuthenticated, logout, isAdmin, token } = useAuth();
+  const { user, isAuthenticated, logout, isAdmin, isSysAdmin, token } = useAuth();
+
+  const userColor = isSysAdmin ? "warning" : (isAdmin ? "light" : "info");
 
   const handleLogout = () => {
     logout();
@@ -98,12 +103,17 @@ const NavBar = () => {
           <Nav className="app-navbar-user">
             {isAuthenticated ? (
               <>
+              <ButtonGroup size="sm ms-auto">
+                <Button disabled variant={userColor}>{user.role}</Button>
                 <DropdownButton
+                  as={ButtonGroup}
                   align="end"
+                  drop="down"
                   variant="success"
-                  className="app-navbar-username app-navbar-dropdown"
+                  className="app-navbar-username app-navbar-dropdown bg-nested-dropdown"
                   title={user?.name || "Usuario"}
                 >
+                    <DropdownHeader>Opciones de usuario</DropdownHeader>
                   <Dropdown.Item as={Link} to="/user/edit">
                     Editar mi informacion
                   </Dropdown.Item>
@@ -118,7 +128,7 @@ const NavBar = () => {
                   >
                     Eliminar cuenta
                   </Dropdown.Item>
-                </DropdownButton>
+                </DropdownButton></ButtonGroup>
 
                 <Modal show={deleteModal}>
                   <Modal.Header>

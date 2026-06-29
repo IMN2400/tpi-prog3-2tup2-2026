@@ -71,9 +71,10 @@
 
 .app-navbar-username {
   color: #ffffff;
-  font-size: 0.98rem;
+  font-size: 1.3rem;
   font-weight: 800;
-  line-height: 1;
+  line-height: 2;
+  vertical-align:text-top;
 }
 
 .app-navbar-logout {
@@ -266,4 +267,32 @@
 .app-dropdown-danger:hover {
   color: #fff;
   background-color: #dc3545;
+}
+.class-indicator {
+  font-size:.6rem;
+  padding:3px;
+  vertical-align: 20%;
+  margin-top:0;
+}
+
+.app-navbar-user-group {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;    
+  width: auto !important;
+}
+
+.app-navbar-user-group .dropdown-toggle {
+  flex: 0 1 auto !important;
+  white-space: nowrap !important;
+  width: auto !important;
+}
+
+.app-navbar-dropdown .dropdown-menu {
+  position: absolute !important;
+  transform: translate3d(0, 15px, 0) !important; 
+  z-index: 1050 !important;  
+}
+
+.navbar-collapse {
+  overflow: visible !important; 
 }
