@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 export const useRequireAuth = () => {
@@ -8,6 +8,7 @@ export const useRequireAuth = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   const timerRef = useRef(null);
+  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
     return () => {
@@ -15,6 +16,7 @@ export const useRequireAuth = () => {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
+      setRedirecting(false)
     };
   }, []);
 
@@ -25,6 +27,7 @@ export const useRequireAuth = () => {
     }
 
     if (!isAuthenticated) {
+      setRedirecting(true)
       toast.warning(
         "Debe iniciar sesión para realizar esta acción."
       );
@@ -37,9 +40,9 @@ export const useRequireAuth = () => {
       return; 
     }
 
-
+    setRedirecting(false)
     callback();
   };
 
-  return { requireAuth };
+  return { requireAuth, redirecting };
 };

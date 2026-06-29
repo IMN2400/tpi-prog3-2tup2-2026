@@ -6,8 +6,8 @@ import img1 from '../../assets/notFound/img1.jpg';
 import gif1 from '../../assets/notFound/gif1.gif'
 import img2 from '../../assets/notFound/img2.jpg'
 import img3 from '../../assets/notFound/img3.png'
+import { useAuth } from '../../context/AuthContext';
 const images = [img1, gif1, img2, img3];
-
 const messages = [
     "Te perdiste 👀",
     "No hay nada acá...",
@@ -21,6 +21,7 @@ const messages = [
 
 const randomMessage = messages[Math.floor(Math.random() * messages.length)];
 const NotFound = () => {
+    const { isAuthenticated } = useAuth()
     const [image, setImage] = useState('');
 
     useEffect(() => {
@@ -54,7 +55,8 @@ const NotFound = () => {
             <br />
             <ButtonGroup className='my-3 py-5' size='lg'>
                 <Button variant="primary" className='mx-2 py-3' onClick={goToMain} >Volver a la página de inicio</Button>
-                <Button variant="secondary" className='mx-2 py-3' onClick={goToLogin}>Ir al inicio de sesión</Button></ButtonGroup>
+                {!isAuthenticated && <Button variant="secondary" className='mx-2 py-3' onClick={goToLogin}>Ir al inicio de sesión</Button>}
+                </ButtonGroup>
         </div>
     )
 }
