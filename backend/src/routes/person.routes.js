@@ -17,6 +17,20 @@ import { canManagePersons, onlySysAdmin } from "../middlewares/checkPersonPermis
 const router = Router();
 
 router.get("/persons", getPersons);
+
+router.get(
+    "/persons/me",
+    verifyToken,
+    getMyProfile
+);
+
+router.patch(
+  "/persons/me",
+  verifyToken,
+  validateUpdatePerson,
+  updateMyProfile
+);
+
 router.get("/persons/:id", getPersonById);
 
 router.put(
@@ -42,16 +56,5 @@ router.patch(
 
 router.post("/persons", validateCreatePerson, createPerson);
 
-router.patch(
-  "/persons/me",
-  verifyToken,
-  updateMyProfile
-);
-
-router.get(
-    "/persons/me",
-    verifyToken,
-    getMyProfile
-);
 
 export default router;

@@ -148,7 +148,6 @@ try {
         <div centered>
             <Card
                 className="p-4 shadow bg-success text-light"
-                centered
             >
                 <Card.Body>
 

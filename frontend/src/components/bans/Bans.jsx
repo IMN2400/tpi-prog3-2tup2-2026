@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Table, Modal } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 import EditBan from "../bans/BanModification"
 import "./Bans.css";
 
 const Bans = () => {
   const { token } = useAuth();
+
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBan, setSelectedBan] = useState(null);
 
@@ -13,35 +15,35 @@ const Bans = () => {
   const [banLoadingId, setBanLoadingId] = useState(null);
   const [error, setError] = useState("");
 
-const cargarBans = useCallback(async () => {
+
+  const cargarBans = useCallback(async () => {
     try {
-        setError("");
+      setError("");
 
-        const response = await fetch("http://localhost:3000/bans", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+      const response = await fetch("http://localhost:3000/bans", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || "No se pudieron cargar los baneos");
-        }
+      if (!response.ok) {
+        throw new Error(data.message || "No se pudieron cargar los baneos");
+      }
 
-        setBans(data);
+      setBans(data);
     } catch (error) {
-        setError(error.message);
-        setBans([]);
+      setError(error.message);
+      setBans([]);
     }
-}, [token]);
+  }, [token]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!token) return;
 
     cargarBans();
-}, [cargarBans]);
-
+  }, [cargarBans]);
 
   const desban = async (ban) => {
     try {
@@ -72,7 +74,6 @@ useEffect(() => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          duration: newDuration,
           status: "desbaneado",
         }),
       });
@@ -93,8 +94,14 @@ useEffect(() => {
             : item
         )
       );
+
+      toast.success("Usuario desbaneado correctamente", {
+        className: "toast-success-custom",
+        progressClassName: "toast-progress-custom",
+      });
+
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message || "No se pudo desbanear el usuario");
     } finally {
       setBanLoadingId(null);
     }
@@ -167,7 +174,7 @@ useEffect(() => {
                   ) : (
                     <span className="text-muted" className="me-2">Ban inactivo</span>
                   )}
-                                    <Button
+                  <Button
                     variant="primary"
                     size="sm"
                     onClick={() => openEditModal(item)}
