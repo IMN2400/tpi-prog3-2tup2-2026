@@ -294,5 +294,21 @@
 }
 
 .navbar-collapse {
-  overflow: visible !important; 
+  /* overflow: visible !important;  */
+  flex-wrap: nowrap !important;
+}
+
+.app-navbar-user-group .btn,
+.app-navbar-user-group .dropdown-toggle {
+  white-space: nowrap !important;
+}
+
+@media (max-width: 991px) {
+  .app-navbar-user-group {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+  }
+  .app-navbar-user-group .btn {
+    flex: 1 1 auto !important;
+  }
 }

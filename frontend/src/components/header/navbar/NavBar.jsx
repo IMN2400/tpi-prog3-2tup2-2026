@@ -100,13 +100,14 @@ const NavBar = () => {
             )}
           </Nav>
 
-          <Nav className="app-navbar-user">
+          <Nav className="app-navbar-user ms-auto">
             {isAuthenticated ? (
               <>
               <ButtonGroup size="sm ms-auto">
                 <Button disabled variant={userColor}>{user.role}</Button>
                 <DropdownButton
                   as={ButtonGroup}
+                  popperConfig={{ strategy: 'fixed' }}
                   align="end"
                   drop="down"
                   variant="success"
