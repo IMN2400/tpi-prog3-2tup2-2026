@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, Col, Form, FormGroup, Row } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -12,8 +12,18 @@ const NewBan = () => {
   const selectedUserId = searchParams.get("userId") || "";
   const selectedUserName = searchParams.get("userName") || "Usuario seleccionado";
 
+  const userIdRef = useRef(null);
+  const reasonRef = useRef(null);
+  const durationRef = useRef(null);
+
   const [formData, setFormData] = useState({
     userId: selectedUserId,
+    reason: "",
+    duration: "",
+  });
+
+  const [formErrors, setFormErrors] = useState({
+    userId: "",
     reason: "",
     duration: "",
   });
@@ -22,40 +32,80 @@ const NewBan = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      userId: selectedUserId,
-    }));
-  }, [selectedUserId]);
+  setFormData((prev) => ({
+    ...prev,
+    userId: selectedUserId,
+  }));
+
+  setFormErrors((prev) => ({
+    ...prev,
+    userId: "",
+  }));
+}, [selectedUserId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
 
     setError("");
+  };
+
+  const validateForm = () => {
+    const newErrors = {
+      userId: "",
+      reason: "",
+      duration: "",
+    };
+
+    if (!formData.userId) {
+      newErrors.userId = "No se seleccionó ningún usuario para banear.";
+    }
+
+    if (!formData.reason.trim()) {
+      newErrors.reason = "El motivo del baneo es obligatorio.";
+    }
+
+    if (!formData.duration) {
+      newErrors.duration = "La duración es obligatoria.";
+    } else if (Number(formData.duration) <= 0) {
+      newErrors.duration = "La duración debe ser mayor a 0 días.";
+    }
+
+    setFormErrors(newErrors);
+
+    if (newErrors.userId) {
+      userIdRef.current?.focus();
+      return false;
+    }
+
+    if (newErrors.reason) {
+      reasonRef.current?.focus();
+      return false;
+    }
+
+    if (newErrors.duration) {
+      durationRef.current?.focus();
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.userId) {
-      setError("No se seleccionó ningún usuario para banear.");
-      return;
-    }
-
-    if (!formData.reason.trim()) {
-      setError("El motivo del baneo es obligatorio.");
-      return;
-    }
-
-    if (!formData.duration || Number(formData.duration) <= 0) {
-      setError("La duración debe ser mayor a 0 días.");
-      return;
-    }
+   if (!validateForm()) {
+    return;
+  }
 
     try {
       setLoading(true);
@@ -69,7 +119,6 @@ const NewBan = () => {
         },
         body: JSON.stringify({
         userId: Number(formData.userId),
-        adminId: Number(user.id),
         reason: formData.reason.trim(),
         duration: Number(formData.duration),
       }),
@@ -100,25 +149,33 @@ const NewBan = () => {
 
   return (
     <div className="d-flex justify-content-center mt-5">
-      <Card className="p-4 shadow bg-success text-light" style={{ width: "700px" }}>
+      <Card
+        className="p-4 shadow text-light"
+        style={{ width: "700px", backgroundColor: "#074621" }}
+      >
         <Card.Body>
           <h2 className="text-center mb-4">Nuevo Ban</h2>
 
           {error && <Alert variant="danger">{error}</Alert>}
 
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={handleSubmit} noValidate>
             <FormGroup className="mb-3">
               <Form.Label>Usuario a banear</Form.Label>
 
               <Form.Control
+                ref={userIdRef}
                 type="text"
                 value={
                   selectedUserId
                     ? `${selectedUserName} (ID: ${selectedUserId})`
                     : "No se seleccionó ningún usuario"
                 }
-                disabled
+                readOnly
+                isInvalid={!!formErrors.userId}
               />
+              <Form.Control.Feedback type="invalid" className="d-block">
+                {formErrors.userId}
+              </Form.Control.Feedback>
             </FormGroup>
 
             <FormGroup className="mb-3">
@@ -131,7 +188,7 @@ const NewBan = () => {
                     ? `${user?.name || "Admin"} (ID: ${user.id})`
                     : "Administrador logueado"
                 }
-                disabled
+                readOnly
               />
             </FormGroup>
 
@@ -139,27 +196,35 @@ const NewBan = () => {
               <Form.Label>Motivo</Form.Label>
 
               <Form.Control
+                ref={reasonRef}
                 type="text"
                 name="reason"
                 value={formData.reason}
                 onChange={handleChange}
-                required
                 placeholder="Ej: comportamiento ofensivo"
+                isInvalid={!!formErrors.reason}
               />
+              <Form.Control.Feedback type="invalid" className="d-block">
+                {formErrors.reason}
+              </Form.Control.Feedback>
             </FormGroup>
 
             <FormGroup className="mb-4">
               <Form.Label>Duración</Form.Label>
 
               <Form.Control
+                ref={durationRef}
                 type="number"
                 name="duration"
                 value={formData.duration}
                 onChange={handleChange}
-                required
                 min="1"
                 placeholder="Cantidad de días"
+                isInvalid={!!formErrors.duration}
               />
+              <Form.Control.Feedback type="invalid" className="d-block">
+                {formErrors.duration}
+              </Form.Control.Feedback>
             </FormGroup>
 
             <Row>
@@ -168,7 +233,7 @@ const NewBan = () => {
                   variant="danger"
                   type="submit"
                   className="w-100"
-                  disabled={loading || !selectedUserId}
+                  disabled={loading}
                 >
                   {loading ? "Baneando..." : "Banear"}
                 </Button>

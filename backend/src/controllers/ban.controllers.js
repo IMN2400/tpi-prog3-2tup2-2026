@@ -44,12 +44,13 @@ const expireBanAndReactivateUser = async (ban) => {
 
 export const createBan = async (req, res) => {
     try {
-        const { userId, adminId, reason, duration } = req.body;
+        const { userId, reason, duration } = req.body;
+        const adminId = req.user.id;
 
-        if (!userId || !adminId || !reason || !duration) {
-            return res.status(400).json({
-                message: 'Faltan datos obligatorios'
-            });
+        if (!userId || !reason || !duration) {
+          return res.status(400).json({
+            message: "Faltan datos obligatorios",
+          });
         }
 
         const durationNumber = Number(duration);
