@@ -1,17 +1,14 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+
 import "react-toastify/dist/ReactToastify.css";
 import "../../styles/toast.css";
-
-import Header from "../header/Header";
-import Footer from "../footer/Footer";
 import Protected from "../protected/Protected";
 
 import MainPage from "../main_page/MainPage";
 import LogIn from "../login/LogIn";
 import Register from "../register/Register";
 import NotFound from "../notFound/NotFound";
-
+import Layout from "../layout/Layout"
 import ForumListPage from "../ForumListPage/ForumListPage";
 import ForumPage from "../forumPage/ForumPage";
 import PostPage from "../postPage/PostPage";
@@ -29,49 +26,44 @@ import ProtectedOnlySysAdmin from "../protected/ProtectedOnlySysAdmin";
 const RoutesDoc = () => {
   return (
     <BrowserRouter>
-      <Header />
       
 
       <Routes>
         {/* Rutas públicas */}
-        <Route path="/" element={<MainPage />} />
-        <Route path="/main" element={<MainPage />} />
-        <Route path="/home" element={<MainPage />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/main" element={<MainPage />} />
+          <Route path="/home" element={<MainPage />} />
 
-        <Route path="/login" element={<LogIn />} />
-        <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<LogIn />} />
+          <Route path="/register" element={<Register />} />
 
-        <Route path="/foros" element={<ForumListPage />} />
-        <Route path="/forum/:forumId" element={<ForumPage />} />
-        <Route path="/post/:postId" element={<PostPage />} />
+          <Route path="/foros" element={<ForumListPage />} />
+          <Route path="/forum/:forumId" element={<ForumPage />} />
+          <Route path="/post/:postId" element={<PostPage />} />
 
-        {/* Rutas protegidas: solo usuarios logueados pueden entrar */}
-        <Route element={<Protected />}>
-          <Route path="/user/edit" element={<UserEdit />} />
-          <Route path="/forums/:forumId/posts/new" element={<NewPost />} />
-          {/* Ruta de SYSADMIN: solo SYSADMIN puede acceder*/}
-          <Route element={<ProtectedOnlySysAdmin />}>
-            <Route path="/newforum" element={<NewForum />} />
-          </Route>
-          {/* Rutas de Admin: solo ADMIN y SYSADMIN pueden acceder. */}
-          <Route element={<ProtectedOnlyAdmin />}>
-            <Route path="/bans" element={<Bans />} />
-            <Route path="/newban" element={<NewBans />} />
-            <Route path="/users" element={<Users />} />
-          </Route>
+          {/* Rutas protegidas: solo usuarios logueados pueden entrar */}
+          <Route element={<Protected />}>
+            <Route path="/user/edit" element={<UserEdit />} />
+            <Route path="/forums/:forumId/posts/new" element={<NewPost />} />
+            {/* Ruta de SYSADMIN: solo SYSADMIN puede acceder*/}
+            <Route element={<ProtectedOnlySysAdmin />}>
+              <Route path="/newforum" element={<NewForum />} />
+            </Route>
+            {/* Rutas de Admin: solo ADMIN y SYSADMIN pueden acceder. */}
+            <Route element={<ProtectedOnlyAdmin />}>
+              <Route path="/bans" element={<Bans />} />
+              <Route path="/newban" element={<NewBans />} />
+              <Route path="/users" element={<Users />} />
+            </Route>
         </Route>
-
+        </Route>
         {/* Ruta 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      <Footer />
-     <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        pauseOnHover
-        theme="colored"
-    />
+
+     
     </BrowserRouter>
   );
 };
