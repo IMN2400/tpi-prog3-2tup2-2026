@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { Person } from "../models/Person.js";
 
 export const getPersons = async (req, res) => {
@@ -183,7 +184,6 @@ export const deletePerson = async (req, res) => {
 
 export const updateMyProfile = async (req, res) => {
     try {
-
         const userId = req.user.id;
 
         const person = await Person.findByPk(userId);
@@ -194,14 +194,42 @@ export const updateMyProfile = async (req, res) => {
             });
         }
 
-        const { name, age, email, password } = req.body;
+        const { name, age, email, password, currentPassword } = req.body;
 
         const dataToUpdate = {};
 
         if (name !== undefined) dataToUpdate.name = name;
         if (age !== undefined) dataToUpdate.age = age;
         if (email !== undefined) dataToUpdate.email = email;
-        if (password !== undefined) dataToUpdate.password = password;
+
+        if (password !== undefined && password.trim() !== "") {
+            if (!currentPassword || currentPassword.trim() === "") {
+                return res.status(400).json({
+                    message: "Debés ingresar tu contraseña actual para cambiarla."
+                });
+            }
+
+            if (password.trim().length < 6) {
+                return res.status(400).json({
+                    message: "La nueva contraseña debe tener al menos 6 caracteres."
+                });
+            }
+
+            const currentPasswordIsValid = await bcrypt.compare(
+                currentPassword,
+                person.password
+            );
+
+            if (!currentPasswordIsValid) {
+                return res.status(401).json({
+                    message: "La contraseña actual es incorrecta."
+                });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            dataToUpdate.password = hashedPassword;
+        }
 
         await person.update(dataToUpdate);
 

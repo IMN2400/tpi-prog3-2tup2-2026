@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
+import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import "./NewPost.css";
 
@@ -94,6 +95,10 @@ const NewPost = () => {
           data.message || data.error || "No se pudo crear la publicación"
         );
       }
+      toast.success("Publicación creada correctamente.", {
+        className: "toast-success-custom",
+        progressClassName: "toast-progress-custom",
+    });
 
       navigate(`/post/${data.id}`);
     } catch (error) {
