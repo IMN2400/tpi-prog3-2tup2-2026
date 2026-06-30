@@ -117,6 +117,28 @@ const Bans = () => {
     setSelectedBan(null);
   };
 
+  const dayleft = (ban) => {
+    const banDate = new Date(ban.date);
+
+      const expirationDate = new Date(banDate);
+
+      expirationDate.setDate(expirationDate.getDate() + ban.duration);
+
+      const today = new Date();
+
+      const diffTime = expirationDate - today;
+
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      let mess =""
+
+      if (diffDays>0) {
+        if (diffDays==1){mess = "(1 dia restante)"}
+        else {mess= "("+diffDays + " restantes)"}
+      } else {mess= ""}
+      return mess
+  }
+
   return (
 
     <main className="bans-page">
@@ -155,7 +177,7 @@ const Bans = () => {
 
                 <td>
                   {item.duration === 1 ? "1 día" : `${item.duration} días`}
-                  <br />({item.remainingText})
+                  <br /> {dayleft(item)}
                 </td>
 
                 <td>{item.status}</td>

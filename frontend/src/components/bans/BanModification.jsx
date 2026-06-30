@@ -99,7 +99,8 @@ const EditBan = ({ ban, onClose, onUpdated }) => {
                         </FormGroup>
                         <FormGroup className="mb-3">
                             <Form.Label>Duracion</Form.Label>
-
+                            <br />
+                            {ban.status === "activo"? (
                             <Form.Control
                                 type="number"
                                 name="duration"
@@ -107,7 +108,7 @@ const EditBan = ({ ban, onClose, onUpdated }) => {
                                 onChange={handleChange}
                                 required
                                 min="1"
-                            />
+                            />): (<span className="text-muted" className="me-2"> Ban inactivo</span>)}
                         </FormGroup>
                         <Row>
                             <Col md={6}>

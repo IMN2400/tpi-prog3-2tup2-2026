@@ -79,25 +79,25 @@ const UserEdit = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-if (!formData.name.trim()) {
-    setError("El nombre es obligatorio.");
-    return;
-}
+        if (!formData.name.trim()) {
+            setError("El nombre es obligatorio.");
+            return;
+        }
 
-if (Number(formData.age) < 1) {
-    setError("La edad debe ser mayor a 0.");
-    return;
-}
+        if (Number(formData.age) < 1) {
+            setError("La edad debe ser mayor a 0.");
+            return;
+        }
 
-if (!formData.email.trim()) {
-    setError("El email es obligatorio.");
-    return;
-}
+        if (!formData.email.trim()) {
+            setError("El email es obligatorio.");
+            return;
+        }
 
-try {
-    setLoading(true);
-    setError("");
-    setSuccess("");
+        try {
+            setLoading(true);
+            setError("");
+            setSuccess("");
 
             const body = {
                 name: formData.name,
@@ -107,6 +107,7 @@ try {
 
             if (formData.password.trim() !== "") {
                 body.password = formData.password;
+                console.log ("la contraseña es", formData.password, "body:", body.password)
             }
             setError("");
             setSuccess("");
