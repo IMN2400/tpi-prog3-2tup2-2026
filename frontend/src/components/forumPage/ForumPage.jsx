@@ -6,6 +6,7 @@ import "./ForumPage.css";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
+import Redirecting from "../redirecting/Redirecting";
 
 const ForumPage = () => {
   // obtiene el id del foro desde la url
@@ -28,7 +29,7 @@ const ForumPage = () => {
   const [editLoading, setEditLoading] = useState(false)
   
   // verifica que el usuario este loggeado
-  const { requireAuth } = useRequireAuth();
+  const { requireAuth, redirecting } = useRequireAuth();
 
   // trae los datos del foro desde el backend
   const {
@@ -141,6 +142,11 @@ const ForumPage = () => {
 
   }
 
+
+  
+  if (redirecting) {
+    return <Redirecting />
+  }
 
   if (loadingForum || loadingPosts) {
     return (

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 import "./Post.css";
+import Redirecting from "../redirecting/Redirecting"
 import { formatBodyText } from "../../services/imgUtils/imgUtils";
 
 
@@ -27,7 +28,7 @@ const readJsonResponse = async (response) => {
 
 const Post = ({ postId }) => {
   const { token, user, isAdmin, isSysAdmin } = useAuth();
-  const { requireAuth } = useRequireAuth();
+  const { requireAuth, redirecting } = useRequireAuth();
   const navigate = useNavigate();
 
   const [post, setPost] = useState(null);
@@ -1036,6 +1037,10 @@ const handleConfirmMakeAdmin = async () => {
       </div>
     );
   };
+
+  if (redirecting) {
+    return <Redirecting />
+  }
 
   if (loading) {
     return (
