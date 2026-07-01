@@ -1,5 +1,8 @@
+import dayjs from "dayjs";
+import { calculateAge } from "./age.services.js";
+
 export const validateRegister = (req, res, next) => {
-  const { name, age, email, password } = req.body;
+  const { name, dob, email, password } = req.body;
 
   const errors = [];
 
@@ -7,8 +10,12 @@ export const validateRegister = (req, res, next) => {
     errors.push("El nombre es obligatorio");
   }
 
-  if (age === undefined || age === null) {
-    errors.push("La edad es obligatoria");
+  if (dob === undefined || dob === null ||!dayjs(dob).isValid()) {
+    errors.push("La fecha de nacimiento es obligatoria");
+  }
+
+  if (calculateAge(dob)<=17) {
+    errors.push("Debe ser mayor de edad para registrarse.")
   }
 
   if (!email || email.trim() === "") {
@@ -28,6 +35,8 @@ export const validateRegister = (req, res, next) => {
       errors,
     });
   }
+
+  req.body.age = calculateAge(dob)
 
   next();
 };

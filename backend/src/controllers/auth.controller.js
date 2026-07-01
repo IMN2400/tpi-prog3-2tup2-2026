@@ -2,14 +2,15 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Person } from "../models/models.js";
 import BanModel from "../models/Bans.js";
+import { calculateAge } from "../middlewares/age.services.js";
 
 const JWT_SECRET = "clave_temporal";
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, age, email, password } = req.body;
+    const { name, dob, email, password } = req.body;
 
-    if (!name || !age || !email || !password) {
+    if (!name || !dob || !email || !password) {
       return res.status(400).json({
         message: "Todos los campos son obligatorios",
       });
@@ -26,10 +27,11 @@ export const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    const age = calculateAge(dob);
     const newUser = await Person.create({
       name,
       age,
+      dob,
       email,
       password: hashedPassword,
       role: "USER",
@@ -41,6 +43,7 @@ export const registerUser = async (req, res) => {
         id: newUser.id,
         name: newUser.name,
         age: newUser.age,
+        dob: newUser.dob,
         email: newUser.email,
         role: newUser.role,
       },

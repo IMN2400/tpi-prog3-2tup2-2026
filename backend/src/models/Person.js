@@ -9,6 +9,10 @@ export const Person = sequelize.define("Person", {
 
   age: {
     type: DataTypes.INTEGER,
+  },
+
+  dob: {
+    type: DataTypes.DATEONLY,
     allowNull: false,
   },
 

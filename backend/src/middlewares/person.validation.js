@@ -1,6 +1,9 @@
-export const validateCreatePerson = (req, res, next) => {
-  const { name, age, email, password } = req.body;
+import dayjs from "dayjs";
+import { calculateAge } from "./age.services.js";
 
+export const validateCreatePerson = (req, res, next) => {
+  const { name, dob, email, password } = req.body;
+  const age = calculateAge(dob)
   const errors = [];
 
   if (!name || name.trim() === "") {
@@ -11,8 +14,8 @@ export const validateCreatePerson = (req, res, next) => {
     errors.push("La edad es obligatoria");
   } else if (Number.isNaN(Number(age))) {
     errors.push("La edad debe ser un número");
-  } else if (Number(age) <= 13) {
-    errors.push("La edad debe ser mayor a 13");
+  } else if (Number(age) <= 17) {
+    errors.push("La edad debe ser mayor a 18");
   }
 
   if (!email || email.trim() === "") {
@@ -36,21 +39,21 @@ export const validateCreatePerson = (req, res, next) => {
 };
 
 export const validateUpdatePerson = (req, res, next) => {
-  const { name, age, email, password, currentPassword } = req.body;
-
+  const { name, dob, email, password, currentPassword } = req.body;
+  const age = calculateAge(dob)
   const errors = [];
 
   if (name !== undefined && name.trim() === "") {
     errors.push("El nombre no puede estar vacío");
   }
 
-  if (age !== undefined) {
-    if (age === null) {
-      errors.push("La edad no puede ser null");
-    } else if (Number.isNaN(Number(age))) {
-      errors.push("La edad debe ser un número");
-    } else if (Number(age) <= 13) {
-      errors.push("La edad debe ser mayor a 13");
+  if (dob !== undefined) {
+    if (dob === null) {
+      errors.push("La fecha de nacimiento no puede quedar vacía.");
+    } else if (!dayjs(dob).isValid()) {
+      errors.push("La fecha de nacimiento debe ser una fecha.");
+    } else if (Number(age) <= 17) {
+      errors.push("La edad debe ser mayor a 18");
     }
   }
 

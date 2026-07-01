@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { Person } from "../models/Person.js";
+import { calculateAge } from "../middlewares/age.services.js";
 
 export const getPersons = async (req, res) => {
   try {
@@ -33,7 +34,7 @@ export const getPersonById = async (req, res) => {
         message: "Persona no encontrada",
       });
     }
-
+    person.age = calculateAge(person.dob)
     res.json(person);
   } catch (error) {
     res.status(500).json({
@@ -45,11 +46,13 @@ export const getPersonById = async (req, res) => {
 
 export const createPerson = async (req, res) => {
   try {
-    const { name, age, email, password, role } = req.body;
+    const { name, dob, email, password, role } = req.body;
+    const age = calculateAge(dob)
 
     const newPerson = await Person.create({
       name,
       age,
+      dob,
       email,
       password,
       role,
@@ -70,8 +73,7 @@ export const createPerson = async (req, res) => {
 export const updatePerson = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, age, email, password, role, status } = req.body;
-
+    const { name, dob, email, password, role, status } = req.body;
     const person = await Person.findByPk(id);
 
     if (!person) {
@@ -83,11 +85,14 @@ export const updatePerson = async (req, res) => {
     const dataToUpdate = {};
 
     if (name !== undefined) dataToUpdate.name = name;
-    if (age !== undefined) dataToUpdate.age = age;
     if (email !== undefined) dataToUpdate.email = email;
     if (password !== undefined) dataToUpdate.password = password;
     if (status !== undefined) dataToUpdate.status = status;
     if (role !== undefined) dataToUpdate.role = role;
+    if (dob !== undefined) {
+      const age = calculateAge(dob);
+      dataToUpdate.age = age;
+      dataToUpdate.dob = dob};
 
     await person.update(dataToUpdate);
 
@@ -194,13 +199,17 @@ export const updateMyProfile = async (req, res) => {
             });
         }
 
-        const { name, age, email, password, currentPassword } = req.body;
+        const { name, dob, email, password, currentPassword } = req.body;
 
         const dataToUpdate = {};
 
         if (name !== undefined) dataToUpdate.name = name;
-        if (age !== undefined) dataToUpdate.age = age;
         if (email !== undefined) dataToUpdate.email = email;
+        if (dob !== undefined) {
+          const age = calculateAge(dob);
+          dataToUpdate.age = age;
+          dataToUpdate.dob = dob
+        };
 
         if (password !== undefined && password.trim() !== "") {
             if (!currentPassword || currentPassword.trim() === "") {
@@ -253,6 +262,9 @@ export const getMyProfile = async (req, res) => {
     const person = await Person.findByPk(req.user.id, {
         attributes: { exclude: ["password"] }
     });
+    if (person) {
+      person.age = calculateAge(person.dob)
+    }
 
     res.json(person);
 };
