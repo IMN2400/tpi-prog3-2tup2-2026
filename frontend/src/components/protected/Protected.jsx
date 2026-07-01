@@ -5,7 +5,6 @@ import { useAuth } from "../../context/AuthContext";
 import { Spinner } from "react-bootstrap";
 
 const Protected = () => {
-  console.log("Protected element loaded")
   const { isAuthenticated } = useAuth();
   const [redirect, setRedirect] = useState(false);
 
@@ -13,7 +12,9 @@ const Protected = () => {
   useEffect(() => {
     
     if (!isAuthenticated) {
-      toast.warning("Debe iniciar sesión para realizar esta acción. Será redirigido prontamente.");
+      toast.warning("Debe iniciar sesión para realizar esta acción. Será redirigido prontamente.", {
+      toastId: "protected-login-required",
+    });
       const timer = setTimeout(() => {
         setRedirect(true);
       }, 3500);

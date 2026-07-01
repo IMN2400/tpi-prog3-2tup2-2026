@@ -12,11 +12,16 @@ import {
   updateMyProfile
 } from "../controllers/person.controller.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import { canManagePersons, onlySysAdmin } from "../middlewares/checkPersonPermissions.js";
+import { canManagePersons, onlySysAdmin, onlyAdminOrSysadmin } from "../middlewares/checkPersonPermissions.js";
 
 const router = Router();
 
-router.get("/persons", getPersons);
+router.get(
+  "/persons",
+  verifyToken,
+  onlyAdminOrSysadmin,
+  getPersons
+);
 
 router.get(
     "/persons/me",
@@ -31,7 +36,12 @@ router.patch(
   updateMyProfile
 );
 
-router.get("/persons/:id", getPersonById);
+router.get(
+  "/persons/:id",
+  verifyToken,
+  onlyAdminOrSysadmin,
+  getPersonById
+);
 
 router.put(
   "/persons/:id",

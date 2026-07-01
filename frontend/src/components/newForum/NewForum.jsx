@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button, Alert, Card } from "react-bootstrap";
+import { useAuth } from "../../context/AuthContext";
 import "./NewForum.css";
 
 const NewForum = () => {
@@ -16,10 +17,7 @@ const NewForum = () => {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
-
-  const isAdmin = user?.role === "ADMIN" || user?.role === "SYSADMIN";
+  const { token, isAdmin } = useAuth();
 
   const handleChange = (event) => {
     setForm({

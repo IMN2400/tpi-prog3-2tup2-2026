@@ -77,7 +77,9 @@ const ForumPage = () => {
   };
 
   // un booleano que es True si el usuario puede editar el foro
-    const canEditForum = (isAdmin && user.id === forum?.founderId) || isSysAdmin || false
+    const canEditForum =
+    isSysAdmin ||
+    (isAdmin && Number(user?.id) === Number(forum?.founderId));
      // funciones que abren o cierran los editores.
     const toggleEditForumName = () => {
       setEditedName(forum?.name || "")
@@ -100,6 +102,12 @@ const ForumPage = () => {
 
   //Función que maneja el editor de reglas:
   const handleUpdateForum = async () => {
+    
+    if (!canEditForum) {
+      toast.error("No tenés permisos para editar este foro.");
+      return;
+    }
+
     setEditLoading(true)
     setEditNameError("")
     setEditRulesError("")

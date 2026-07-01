@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import "../../styles/toast.css";
 import Protected from "../protected/Protected";
+import PublicOnly from "../protected/PublicOnly";
 
 import MainPage from "../main_page/MainPage";
 import LogIn from "../login/LogIn";
@@ -35,8 +36,10 @@ const RoutesDoc = () => {
           <Route path="/main" element={<MainPage />} />
           <Route path="/home" element={<MainPage />} />
 
-          <Route path="/login" element={<LogIn />} />
-          <Route path="/register" element={<Register />} />
+          <Route element={<PublicOnly />}>
+            <Route path="/login" element={<LogIn />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
 
           <Route path="/foros" element={<ForumListPage />} />
           <Route path="/forum/:forumId" element={<ForumPage />} />
@@ -46,15 +49,13 @@ const RoutesDoc = () => {
           <Route element={<Protected />}>
             <Route path="/user/edit" element={<UserEdit />} />
             <Route path="/forums/:forumId/posts/new" element={<NewPost />} />
-            {/* Ruta de SYSADMIN: solo SYSADMIN puede acceder*/}
-            <Route element={<ProtectedOnlySysAdmin />}>
-              <Route path="/newforum" element={<NewForum />} />
-            </Route>
+            
             {/* Rutas de Admin: solo ADMIN y SYSADMIN pueden acceder. */}
             <Route element={<ProtectedOnlyAdmin />}>
               <Route path="/bans" element={<Bans />} />
               <Route path="/newban" element={<NewBans />} />
               <Route path="/users" element={<Users />} />
+              <Route path="/newforum" element={<NewForum />} />
             </Route>
         </Route>
         </Route>

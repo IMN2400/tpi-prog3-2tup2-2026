@@ -82,3 +82,44 @@ export const onlySysAdmin = (req, res, next) => {
 
   next();
 };
+
+
+export const onlyAdminOrSysadmin = async (req, res, next) => {
+  try {
+    const loggedUserId = req.user?.id;
+
+    if (!loggedUserId) {
+      return res.status(401).json({
+        message: "Usuario no autenticado",
+      });
+    }
+
+    const loggedUser = await Person.findOne({
+      where: {
+        id: loggedUserId,
+        status: true,
+      },
+    });
+
+    if (!loggedUser) {
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
+    }
+
+    if (loggedUser.role !== "ADMIN" && loggedUser.role !== "SYSADMIN") {
+      return res.status(403).json({
+        message: "Solo administradores pueden acceder a esta información",
+      });
+    }
+
+    req.user = loggedUser;
+
+    next();
+  } catch (error) {
+    res.status(500).json({
+      message: "Error al verificar permisos de usuario",
+      error: error.message,
+    });
+  }
+};

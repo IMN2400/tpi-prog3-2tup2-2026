@@ -8,7 +8,7 @@ import "./ForumListPage.css";
 
 const ForumListPage = () => {
   const navigate = useNavigate();
-  const { isSysAdmin } = useAuth();
+  const { isAdmin } = useAuth();
 
   const { data: forums, loading, error } = useFetchFromAPI("/forums", []);
   const [search, setSearch] = useState("");
@@ -64,7 +64,7 @@ const ForumListPage = () => {
             />
           </div>
 
-          {isSysAdmin && (
+          {isAdmin && (
             <button
               className="forums-page-create-button"
               onClick={() => navigate("/newforum")}
